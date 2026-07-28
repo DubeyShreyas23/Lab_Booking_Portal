@@ -80,6 +80,7 @@ app.use((req, res, next) => {
 app.use(exposeCsrf);
 
 // ── Routes ───────────────────────────────────────────────────────────────
+app.get('/healthz', (_req, res) => res.json({ ok: true })); // before auth-guarded routers
 app.use('/', kioskRoutes);          // public — no auth
 app.use('/', authRoutes);
 app.use('/', bookingDetailRoutes);
@@ -87,8 +88,6 @@ app.use('/', studentRoutes);
 app.use('/', approvalRoutes);
 app.use('/reports', reportRoutes);
 app.use('/admin', adminRoutes);
-
-app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 app.use(notFound);
 app.use(errorHandler);
