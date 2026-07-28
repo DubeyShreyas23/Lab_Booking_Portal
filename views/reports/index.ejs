@@ -1,0 +1,87 @@
+<%- include('../partials/head') %>
+<div class="flex items-baseline justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-900">Usage reports</h1>
+    <p class="text-sm text-slate-500">Filter, then download a PDF.</p>
+  </div>
+  <a href="/reports/pdf?<%= new URLSearchParams({
+       from: filters.from, to: filters.to,
+       instrument_id: filters.instrumentId || '',
+       status: filters.status,
+     }).toString() %>"
+     class="bg-rose-600 hover:bg-rose-700 text-white text-sm px-4 py-2 rounded font-medium">⬇ Download PDF</a>
+</div>
+
+<form method="get" class="bg-white border rounded-xl p-4 grid sm:grid-cols-5 gap-3 mb-4 text-sm">
+  <label class="block">
+    <span class="text-xs text-slate-600">From</span>
+    <input type="date" name="from" value="<%= filters.from %>" class="mt-1 w-full px-2 py-1.5 border rounded">
+  </label>
+  <label class="block">
+    <span class="text-xs text-slate-600">To</span>
+    <input type="date" name="to" value="<%= filters.to %>" class="mt-1 w-full px-2 py-1.5 border rounded">
+  </label>
+  <label class="block">
+    <span class="text-xs text-slate-600">Instrument</span>
+    <select name="instrument_id" class="mt-1 w-full px-2 py-1.5 border rounded">
+      <option value="">All</option>
+      <% instruments.forEach(function(i){ %>
+        <option value="<%= i.id %>" <%= filters.instrumentId == i.id ? 'selected' : '' %>><%= i.code %> · <%= i.name %></option>
+      <% }) %>
+    </select>
+  </label>
+  <label class="block">
+    <span class="text-xs text-slate-600">Status</span>
+    <select name="status" class="mt-1 w-full px-2 py-1.5 border rounded">
+      <option value="">All</option>
+      <% ['pending_technician','pending_faculty','approved','rejected','cancelled','completed','no_show'].forEach(function(s){ %>
+        <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s.replace('_',' ') %></option>
+      <% }) %>
+    </select>
+  </label>
+  <div class="flex items-end"><button class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded text-sm w-full">Apply</button></div>
+</form>
+
+<div class="grid sm:grid-cols-4 gap-3 mb-4">
+  <div class="bg-white border rounded-xl p-3"><div class="text-xs text-slate-500">Total</div><div class="text-2xl font-semibold"><%= summary.total %></div></div>
+  <div class="bg-white border rounded-xl p-3"><div class="text-xs text-slate-500">Active hours scheduled</div><div class="text-2xl font-semibold"><%= summary.totalHours %></div></div>
+  <div class="bg-white border rounded-xl p-3 sm:col-span-2">
+    <div class="text-xs text-slate-500">By status</div>
+    <div class="text-sm mt-1">
+      <% Object.entries(summary.byStatus).forEach(function([k,v]){ %>
+        <span class="inline-block bg-slate-100 rounded px-2 py-0.5 mr-1 mb-1"><%= k.replace('_',' ') %>: <strong><%= v %></strong></span>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white border rounded-xl overflow-hidden">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-600 text-left text-xs">
+      <tr>
+        <th class="px-3 py-2">Date</th>
+        <th class="px-3 py-2">Time</th>
+        <th class="px-3 py-2">Instrument</th>
+        <th class="px-3 py-2">Student</th>
+        <th class="px-3 py-2">Supervisor</th>
+        <th class="px-3 py-2">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% rows.forEach(function(r){ %>
+        <tr>
+          <td class="px-3 py-2"><%= r.starts_at.slice(0,10) %></td>
+          <td class="px-3 py-2"><%= r.starts_at.slice(11,16) %>–<%= r.ends_at.slice(11,16) %></td>
+          <td class="px-3 py-2"><a href="/bookings/<%= r.id %>" class="hover:underline"><%= r.instrument_code %> · <%= r.instrument_name %></a></td>
+          <td class="px-3 py-2"><%= r.student_name %></td>
+          <td class="px-3 py-2"><%= r.supervisor_name || '—' %></td>
+          <td class="px-3 py-2 text-xs"><%= r.status.replace('_',' ') %></td>
+        </tr>
+      <% }) %>
+      <% if (!rows.length) { %>
+        <tr><td colspan="6" class="px-3 py-8 text-center text-slate-500">No bookings match these filters.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/foot') %>

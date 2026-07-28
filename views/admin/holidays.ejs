@@ -1,0 +1,65 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-1">Holidays & lab closures</h1>
+<p class="text-sm text-slate-500 mb-5">Blocked dates won't accept new bookings. Leave Instrument blank to close the whole lab.</p>
+
+<div class="grid lg:grid-cols-[1fr_320px] gap-6">
+  <section class="bg-white border rounded-xl overflow-hidden">
+    <header class="px-4 py-2 text-xs uppercase tracking-wide text-slate-500 bg-slate-50 border-b">Existing</header>
+    <table class="w-full text-sm">
+      <thead class="text-left text-slate-500 text-xs">
+        <tr>
+          <th class="px-3 py-2">Date</th>
+          <th class="px-3 py-2">Label</th>
+          <th class="px-3 py-2">Scope</th>
+          <th class="px-3 py-2">Added by</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% holidays.forEach(function(h){ %>
+          <tr>
+            <td class="px-3 py-2 font-medium"><%= h.date %></td>
+            <td class="px-3 py-2"><%= h.label %></td>
+            <td class="px-3 py-2 text-xs"><%= h.instrument_name || 'Whole lab' %></td>
+            <td class="px-3 py-2 text-xs text-slate-500"><%= h.creator_name || '—' %></td>
+            <td class="px-3 py-2 text-right">
+              <form method="post" action="/admin/holidays/<%= h.id %>/delete" class="inline" onsubmit="return confirm('Remove this holiday?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="text-rose-600 hover:underline text-xs">Remove</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (!holidays.length) { %>
+          <tr><td colspan="5" class="px-3 py-6 text-center text-slate-500">No holidays defined.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="bg-white border rounded-xl p-4">
+    <h2 class="font-semibold text-slate-900">Add holiday</h2>
+    <form method="post" action="/admin/holidays" class="mt-3 space-y-3 text-sm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="block">
+        <span class="text-slate-700">Date</span>
+        <input type="date" name="date" required class="mt-1 w-full px-3 py-2 border rounded">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Label</span>
+        <input name="label" required maxlength="120" class="mt-1 w-full px-3 py-2 border rounded" placeholder="e.g. Republic Day, AMC maintenance">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Instrument <span class="text-slate-400">(optional)</span></span>
+        <select name="instrument_id" class="mt-1 w-full px-3 py-2 border rounded">
+          <option value="">Whole lab closed</option>
+          <% instruments.forEach(function(i){ %>
+            <option value="<%= i.id %>"><%= i.code %> · <%= i.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <button class="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 rounded text-sm">Add holiday</button>
+    </form>
+  </section>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-1">Available instruments</h1>
+<p class="text-sm text-slate-500 mb-4">Click an instrument to view available slots and book.</p>
+
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <% instruments.forEach(function(i){ %>
+    <a href="/book/<%= i.id %>" class="block bg-white border rounded-xl p-4 hover:border-brand-500 hover:shadow-sm transition">
+      <div class="flex items-baseline justify-between">
+        <h2 class="font-semibold text-slate-900"><%= i.name %></h2>
+        <span class="text-xs text-slate-400"><%= i.code %></span>
+      </div>
+      <p class="text-sm text-slate-500 mt-1 line-clamp-2"><%= i.description || '' %></p>
+      <div class="text-xs text-slate-500 mt-3 flex flex-wrap gap-x-3 gap-y-1">
+        <span>⏱ <%= ((i.experiment_minutes + i.maintenance_minutes)/60).toFixed(1) %> hr / run</span>
+        <% if (i.location) { %><span>📍 <%= i.location %></span><% } %>
+        <span>🕘 <%= String(i.open_hour).padStart(2,'0') %>:00 – <%= String(i.close_hour).padStart(2,'0') %>:00</span>
+      </div>
+      <% if (i.technician_name) { %>
+        <div class="text-xs text-slate-400 mt-2">Technician: <%= i.technician_name %></div>
+      <% } %>
+    </a>
+  <% }) %>
+  <% if (!instruments.length) { %>
+    <div class="col-span-full bg-white border rounded-xl p-8 text-center text-slate-500">
+      No instruments are available yet. The lab assistant can add them from the admin panel.
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

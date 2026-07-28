@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · <%= appName %></title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { brand: { 50:'#eef5ff',100:'#d9e8ff',500:'#1a56db',600:'#1546b6',700:'#103a92' } } } }
+    }
+  </script>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+  <%- include('partials/nav') %>
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+    <%- include('partials/flash') %>
+    <%- body %>
+  </main>
+  <footer class="text-xs text-slate-500 text-center py-4 border-t bg-white">
+    <%= appName %> · BITS Pilani Hyderabad Campus
+  </footer>
+</body>
+</html>

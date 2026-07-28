@@ -1,0 +1,60 @@
+<%- include('../partials/head') %>
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-900">My bookings</h1>
+    <p class="text-sm text-slate-500">Track your applications and approvals.</p>
+  </div>
+  <a href="/instruments" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium text-sm">+ New booking</a>
+</div>
+
+<% if (!bookings.length) { %>
+  <div class="bg-white border rounded-xl p-10 text-center text-slate-500">
+    <p>No bookings yet.</p>
+    <a href="/instruments" class="inline-block mt-3 text-brand-600 hover:underline">Browse instruments →</a>
+  </div>
+<% } else { %>
+  <div class="bg-white border rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-slate-600 text-left">
+        <tr>
+          <th class="px-3 py-2">Instrument</th>
+          <th class="px-3 py-2">Date</th>
+          <th class="px-3 py-2">Time</th>
+          <th class="px-3 py-2">Duration</th>
+          <th class="px-3 py-2">Status</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% bookings.forEach(function(b){ %>
+        <tr>
+          <td class="px-3 py-2 font-medium"><a href="/bookings/<%= b.id %>" class="hover:underline"><%= b.instrument_name %></a> <span class="text-xs text-slate-400">(<%= b.instrument_code %>)</span></td>
+          <td class="px-3 py-2"><%= b.dateLong %></td>
+          <td class="px-3 py-2"><%= b.startTime %> – <%= b.endTime %></td>
+          <td class="px-3 py-2"><%= b.durationLabel %></td>
+          <td class="px-3 py-2">
+            <% var color = ({
+                pending_technician:'bg-amber-100 text-amber-800',
+                pending_faculty:'bg-amber-100 text-amber-800',
+                approved:'bg-emerald-100 text-emerald-800',
+                rejected:'bg-rose-100 text-rose-800',
+                cancelled:'bg-slate-100 text-slate-600',
+                completed:'bg-sky-100 text-sky-800',
+              })[b.status] %>
+            <span class="<%= color %> px-2 py-0.5 rounded text-xs font-medium"><%= b.status.replace('_',' ') %></span>
+          </td>
+          <td class="px-3 py-2 text-right">
+            <% if (['pending_technician','pending_faculty','approved'].includes(b.status)) { %>
+              <form method="post" action="/bookings/<%= b.id %>/cancel" onsubmit="return confirm('Cancel this booking?')" class="inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="text-rose-600 hover:underline text-xs">Cancel</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/foot') %>

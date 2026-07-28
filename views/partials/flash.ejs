@@ -1,0 +1,21 @@
+<% if (flashInfo && flashInfo.length) { %>
+  <% flashInfo.forEach(function(m){ %>
+    <div class="mb-3 px-4 py-2.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 text-sm flex items-start gap-2">
+      <span class="font-bold">✓</span><span><%= m %></span>
+    </div>
+  <% }) %>
+<% } %>
+<% if (flashError && flashError.length) { %>
+  <% flashError.forEach(function(m){ %>
+    <div id="flashError" class="mb-3 px-4 py-3 rounded bg-rose-50 text-rose-900 border-2 border-rose-300 text-sm font-medium flex items-start gap-2 shadow-sm">
+      <span class="font-bold">⚠</span><span><%= m %></span>
+    </div>
+  <% }) %>
+  <script>
+    // Scroll the error into view so users notice it after a redirect-back.
+    requestAnimationFrame(() => {
+      const el = document.getElementById('flashError');
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  </script>
+<% } %>

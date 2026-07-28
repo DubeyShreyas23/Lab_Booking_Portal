@@ -1,0 +1,46 @@
+# Render Blueprint — deploys the CAL portal as a free web service.
+# In Render: New → Blueprint → connect the lab GitHub repo. Render reads this file.
+# Then set the secret env vars (marked sync:false) in the dashboard.
+services:
+  - type: web
+    name: cal-portal
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false          # paste the Supabase session-pooler URI
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CSRF_SECRET
+        generateValue: true
+      - key: PORTAL_URL
+        sync: false          # e.g. https://cal-portal.onrender.com
+      - key: ALLOWED_DOMAINS
+        value: hyderabad.bits-pilani.ac.in,pilani.bits-pilani.ac.in
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false          # {PORTAL_URL}/auth/google/callback
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_NAME
+        value: Lab Administrator
+      - key: MAIL_FROM_NAME
+        value: Central Analytical Laboratory
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

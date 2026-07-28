@@ -1,0 +1,44 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-4">Admin overview</h1>
+
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="bg-white border rounded-xl p-4">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Active instruments</div>
+    <div class="text-3xl font-semibold mt-1"><%= stats.instruments %></div>
+    <a href="/admin/instruments" class="text-xs text-brand-600 hover:underline">Manage →</a>
+  </div>
+  <div class="bg-white border rounded-xl p-4">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Users</div>
+    <div class="text-3xl font-semibold mt-1"><%= stats.users %></div>
+    <a href="/admin/users" class="text-xs text-brand-600 hover:underline">Manage →</a>
+  </div>
+  <div class="bg-white border rounded-xl p-4">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Pending approvals</div>
+    <div class="text-3xl font-semibold mt-1 text-amber-700"><%= stats.pending %></div>
+  </div>
+  <div class="bg-white border rounded-xl p-4">
+    <div class="text-xs uppercase tracking-wide text-slate-500">Upcoming approved</div>
+    <div class="text-3xl font-semibold mt-1 text-emerald-700"><%= stats.approvedFuture %></div>
+  </div>
+</div>
+
+<section class="bg-white border rounded-xl overflow-hidden mt-6">
+  <header class="px-4 py-2 text-xs uppercase tracking-wide text-slate-500 bg-slate-50 border-b">Recent activity</header>
+  <% if (!recent.length) { %>
+    <p class="px-4 py-6 text-sm text-slate-500 text-center">No bookings yet.</p>
+  <% } else { %>
+    <table class="w-full text-sm">
+      <tbody class="divide-y">
+        <% recent.forEach(function(b){ %>
+          <tr>
+            <td class="px-3 py-2 text-slate-500 w-32 text-xs"><%= b.status.replace('_',' ') %></td>
+            <td class="px-3 py-2"><%= b.instrument_name %></td>
+            <td class="px-3 py-2"><%= b.student_name %></td>
+            <td class="px-3 py-2 text-slate-500 text-xs"><%= b.starts_at.replace('T',' ').slice(0,16) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

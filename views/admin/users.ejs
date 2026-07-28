@@ -1,0 +1,79 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-4">Users</h1>
+
+<div class="grid lg:grid-cols-[1fr_320px] gap-6">
+  <section class="bg-white border rounded-xl overflow-hidden">
+    <header class="px-4 py-2 text-xs uppercase tracking-wide text-slate-500 bg-slate-50 border-b">All users</header>
+    <table class="w-full text-sm">
+      <thead class="text-left text-slate-500 text-xs">
+        <tr>
+          <th class="px-3 py-2">Name</th>
+          <th class="px-3 py-2">Email</th>
+          <th class="px-3 py-2">Role</th>
+          <th class="px-3 py-2">Supervisor</th>
+          <th class="px-3 py-2">Department</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% users.forEach(function(u){ %>
+          <tr>
+            <form method="post" action="/admin/users/<%= u.id %>" class="contents">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <td class="px-3 py-2 font-medium"><%= u.name %></td>
+              <td class="px-3 py-2 text-xs text-slate-600"><%= u.email %></td>
+              <td class="px-3 py-2">
+                <select name="role" class="px-2 py-1 border rounded text-xs">
+                  <% ['student','technician','faculty','admin'].forEach(function(r){ %>
+                    <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= r %></option>
+                  <% }) %>
+                </select>
+              </td>
+              <td class="px-3 py-2">
+                <select name="supervisor_id" class="px-2 py-1 border rounded text-xs">
+                  <option value="">—</option>
+                  <% faculty.forEach(function(f){ %>
+                    <option value="<%= f.id %>" <%= u.supervisor_id==f.id?'selected':'' %>><%= f.name %></option>
+                  <% }) %>
+                </select>
+              </td>
+              <td class="px-3 py-2">
+                <input name="department" value="<%= u.department || '' %>" class="px-2 py-1 border rounded text-xs w-32">
+              </td>
+              <td class="px-3 py-2 text-right">
+                <button class="text-brand-600 hover:underline text-xs">Save</button>
+              </td>
+            </form>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="bg-white border rounded-xl p-4">
+    <h2 class="font-semibold text-slate-900">Pre-register user</h2>
+    <p class="text-xs text-slate-500 mt-1">Optional. Anyone with an institute email can also self-register on first sign-in.</p>
+    <form method="post" action="/admin/users" class="mt-3 space-y-3 text-sm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label class="block">
+        <span class="text-slate-700">Institute email</span>
+        <input name="email" type="email" required class="mt-1 w-full px-3 py-2 border rounded">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Name</span>
+        <input name="name" required class="mt-1 w-full px-3 py-2 border rounded">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Role</span>
+        <select name="role" class="mt-1 w-full px-3 py-2 border rounded">
+          <option value="student">Student</option>
+          <option value="technician">Technician</option>
+          <option value="faculty">Faculty</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <button class="bg-brand-500 hover:bg-brand-600 text-white w-full py-2 rounded text-sm">Create</button>
+    </form>
+  </section>
+</div>
+<%- include('../partials/foot') %>

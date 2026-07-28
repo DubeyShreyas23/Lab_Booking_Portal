@@ -1,0 +1,38 @@
+<header class="bg-white border-b">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2 font-semibold text-brand-700">
+      <span class="inline-block w-7 h-7 rounded bg-brand-500 text-white grid place-items-center text-xs">CAL</span>
+      <span class="hidden sm:inline">Central Analytical Laboratory</span>
+      <span class="sm:hidden">CAL</span>
+    </a>
+    <% if (user) { %>
+      <nav class="flex items-center gap-1 text-sm">
+        <% if (user.role === 'student') { %>
+          <a href="/" class="px-3 py-1.5 rounded hover:bg-slate-100">My bookings</a>
+          <a href="/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
+        <% } %>
+        <% if (user.role === 'technician') { %>
+          <a href="/technician" class="px-3 py-1.5 rounded hover:bg-slate-100">Queue</a>
+          <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
+        <% } %>
+        <% if (user.role === 'faculty' || user.role === 'admin') { %>
+          <a href="/admin" class="px-3 py-1.5 rounded hover:bg-slate-100">Dashboard</a>
+          <a href="/admin/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
+          <a href="/admin/users" class="px-3 py-1.5 rounded hover:bg-slate-100">Users</a>
+          <a href="/admin/holidays" class="px-3 py-1.5 rounded hover:bg-slate-100">Holidays</a>
+          <a href="/technician" class="px-3 py-1.5 rounded hover:bg-slate-100">Tech&nbsp;Q</a>
+          <a href="/faculty" class="px-3 py-1.5 rounded hover:bg-slate-100">Approvals</a>
+          <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
+        <% } %>
+        <a href="/kiosk" target="_blank" class="px-3 py-1.5 rounded hover:bg-slate-100 text-slate-500 text-xs">Kiosk ↗</a>
+        <span class="ml-2 text-slate-500 hidden md:inline"><%= user.name %></span>
+        <form method="post" action="/logout" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="ml-2 px-3 py-1.5 rounded border hover:bg-slate-50">Sign out</button>
+        </form>
+      </nav>
+    <% } else { %>
+      <a href="/login" class="text-sm text-brand-600 hover:underline">Sign in</a>
+    <% } %>
+  </div>
+</header>

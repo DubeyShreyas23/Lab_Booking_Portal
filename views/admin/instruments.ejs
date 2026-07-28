@@ -1,0 +1,106 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-4">Instruments</h1>
+
+<div class="grid lg:grid-cols-[1fr_360px] gap-6">
+  <section class="bg-white border rounded-xl overflow-hidden">
+    <header class="px-4 py-2 text-xs uppercase tracking-wide text-slate-500 bg-slate-50 border-b">All instruments</header>
+    <table class="w-full text-sm">
+      <thead class="text-left text-slate-500 text-xs">
+        <tr>
+          <th class="px-3 py-2">Code</th>
+          <th class="px-3 py-2">Name</th>
+          <th class="px-3 py-2">Run time</th>
+          <th class="px-3 py-2">Technician</th>
+          <th class="px-3 py-2">Status</th>
+          <th class="px-3 py-2"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <% items.forEach(function(i){ %>
+          <tr class="<%= i.active ? '' : 'opacity-60' %>">
+            <td class="px-3 py-2 font-mono text-xs"><%= i.code %></td>
+            <td class="px-3 py-2 font-medium"><%= i.name %></td>
+            <td class="px-3 py-2 text-xs">
+              <%= i.experiment_minutes %>m exp + <%= i.maintenance_minutes %>m maint
+              = <span class="font-medium"><%= ((i.experiment_minutes + i.maintenance_minutes)/60).toFixed(1) %> hr</span>
+            </td>
+            <td class="px-3 py-2 text-xs"><%= i.technician_name || '—' %></td>
+            <td class="px-3 py-2 text-xs"><%= i.active ? 'Active' : 'Inactive' %></td>
+            <td class="px-3 py-2 text-right">
+              <a href="/admin/instruments/<%= i.id %>/edit" class="text-brand-600 hover:underline text-xs">Edit</a>
+              <% if (i.active) { %>
+                <form method="post" action="/admin/instruments/<%= i.id %>/delete" class="inline" onsubmit="return confirm('Deactivate?')">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="text-rose-600 hover:underline text-xs ml-2">Deactivate</button>
+                </form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (!items.length) { %>
+          <tr><td colspan="6" class="px-3 py-6 text-center text-slate-500">No instruments yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="bg-white border rounded-xl p-4">
+    <h2 class="font-semibold text-slate-900"><%= edit ? 'Edit instrument' : 'Add instrument' %></h2>
+    <form method="post" action="/admin/instruments" class="mt-3 space-y-3 text-sm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (edit) { %><input type="hidden" name="id" value="<%= edit.id %>"><% } %>
+      <label class="block">
+        <span class="text-slate-700">Code <span class="text-slate-400">(short)</span></span>
+        <input name="code" required maxlength="20" value="<%= edit ? edit.code : '' %>" class="mt-1 w-full px-3 py-2 border rounded uppercase" placeholder="GC, COD, HPLC…">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Name</span>
+        <input name="name" required value="<%= edit ? edit.name : '' %>" class="mt-1 w-full px-3 py-2 border rounded" placeholder="Gas Chromatograph">
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Description</span>
+        <textarea name="description" rows="2" class="mt-1 w-full px-3 py-2 border rounded"><%= edit ? edit.description || '' : '' %></textarea>
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Location</span>
+        <input name="location" value="<%= edit ? edit.location || '' : '' %>" class="mt-1 w-full px-3 py-2 border rounded" placeholder="CAL Room 204">
+      </label>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block">
+          <span class="text-slate-700 text-xs">Experiment (min)</span>
+          <input name="experiment_minutes" type="number" required min="15" value="<%= edit ? edit.experiment_minutes : 180 %>" class="mt-1 w-full px-3 py-2 border rounded">
+        </label>
+        <label class="block">
+          <span class="text-slate-700 text-xs">Maintenance (min)</span>
+          <input name="maintenance_minutes" type="number" required min="0" value="<%= edit ? edit.maintenance_minutes : 60 %>" class="mt-1 w-full px-3 py-2 border rounded">
+        </label>
+        <label class="block">
+          <span class="text-slate-700 text-xs">Open hour</span>
+          <input name="open_hour" type="number" min="0" max="23" value="<%= edit ? edit.open_hour : 9 %>" class="mt-1 w-full px-3 py-2 border rounded">
+        </label>
+        <label class="block">
+          <span class="text-slate-700 text-xs">Close hour</span>
+          <input name="close_hour" type="number" min="0" max="24" value="<%= edit ? edit.close_hour : 21 %>" class="mt-1 w-full px-3 py-2 border rounded">
+        </label>
+      </div>
+      <label class="block">
+        <span class="text-slate-700">Technician</span>
+        <select name="technician_id" class="mt-1 w-full px-3 py-2 border rounded">
+          <option value="">— none —</option>
+          <% technicians.forEach(function(t){ %>
+            <option value="<%= t.id %>" <%= edit && edit.technician_id == t.id ? 'selected' : '' %>><%= t.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>>
+        <span>Active</span>
+      </label>
+      <div class="flex gap-2 pt-1">
+        <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded text-sm flex-1"><%= edit ? 'Save changes' : 'Add instrument' %></button>
+        <% if (edit) { %><a href="/admin/instruments" class="px-4 py-2 rounded border text-sm">Cancel</a><% } %>
+      </div>
+    </form>
+  </section>
+</div>
+<%- include('../partials/foot') %>

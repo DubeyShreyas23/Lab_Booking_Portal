@@ -1,0 +1,9 @@
+/* Small custom tweaks on top of Tailwind */
+details > summary::-webkit-details-marker { display: none; }
+details[open] > summary { background-color: rgb(254 226 226); }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

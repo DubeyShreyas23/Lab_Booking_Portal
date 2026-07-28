@@ -1,0 +1,216 @@
+<%- include('../partials/head') %>
+
+<div class="bg-white border rounded-xl p-6">
+  <div class="flex items-baseline justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900"><%= instrument.name %> <span class="text-sm text-slate-400 font-normal">(<%= instrument.code %>)</span></h1>
+      <p class="text-sm text-slate-500"><%= instrument.description || '' %></p>
+    </div>
+    <a href="/instruments" class="text-xs text-slate-500 hover:underline">← All instruments</a>
+  </div>
+
+  <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 text-sm">
+    <div><dt class="text-slate-500 text-xs">Experiment time</dt><dd><%= instrument.experiment_minutes %> min</dd></div>
+    <div><dt class="text-slate-500 text-xs">Maintenance buffer</dt><dd><%= instrument.maintenance_minutes %> min</dd></div>
+    <div><dt class="text-slate-500 text-xs">Total per booking</dt><dd class="font-semibold text-brand-700"><%= totalMinutes %> min (<%= (totalMinutes/60).toFixed(1) %> hr)</dd></div>
+    <div><dt class="text-slate-500 text-xs">Lab hours</dt><dd><%= String(instrument.open_hour).padStart(2,'0') %>:00 – <%= String(instrument.close_hour).padStart(2,'0') %>:00</dd></div>
+  </dl>
+
+  <form method="get" class="mt-6 flex items-end gap-3">
+    <label class="block">
+      <span class="text-sm text-slate-700">Date</span>
+      <input type="date" name="date" value="<%= date %>" min="<%= today %>"
+             class="mt-1 px-3 py-2 border rounded" onchange="this.form.submit()">
+    </label>
+  </form>
+
+  <div class="mt-6">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-700">Pick a start time</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Hover any free cell — the next <%= cellsNeeded %> half-hour blocks (the full <%= totalMinutes %> min run) will preview in green. Click to select.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-white border"></span>Free</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-emerald-500"></span>Your pick</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-rose-200"></span>Booked</span>
+        <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-slate-100 border"></span>Unavailable</span>
+      </div>
+    </div>
+
+    <% if (closedAllDay) { %>
+      <div class="mb-3 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        The lab is closed on this date. Please choose another day.
+      </div>
+    <% } else if (!anySelectable) { %>
+      <div class="mb-3 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        No start time on this date can fit a full <%= totalMinutes %>-minute run (all remaining slots are booked or too late). Try another day.
+      </div>
+    <% } %>
+
+    <div id="slotGrid" class="grid gap-1" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
+      <% cells.forEach(function(c, i){ %>
+        <%
+          var base, note = '';
+          if (c.taken)          { base = 'bg-rose-200 text-rose-800 cursor-not-allowed'; note = ' · Booked by ' + c.bookedBy; }
+          else if (c.past)      { base = 'bg-slate-100 text-slate-400 cursor-not-allowed'; note = ' · Past'; }
+          else if (c.selectable){ base = 'bg-white hover:bg-slate-100 cursor-pointer'; }
+          else                  { base = 'bg-slate-100 text-slate-400 cursor-not-allowed'; note = ' · Unavailable'; }
+        %>
+        <div
+          data-cell="<%= i %>"
+          data-iso="<%= c.iso %>"
+          data-selectable="<%= c.selectable ? '1' : '0' %>"
+          data-blocked="<%= c.blocked ? '1' : '0' %>"
+          class="cal-cell border rounded px-1 py-2 text-center text-xs select-none transition-colors <%= base %>"
+          title="<%= c.time %>–<%= c.endTime %><%= note %>">
+          <div class="font-medium"><%= c.time %></div>
+          <% if (c.taken) { %>
+            <div class="text-[10px] mt-0.5 font-bold tracking-wider"><%= c.initials %></div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+
+    <p id="pickedLabel" class="mt-3 text-sm text-slate-600">No slot selected yet.</p>
+
+    <% if (typeof canBook !== 'undefined' && !canBook) { %>
+      <div class="mt-4 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+        You are signed in as <strong><%= user.role %></strong>. Only students can submit bookings.
+      </div>
+    <% } else { %>
+    <form method="post" action="/book/<%= instrument.id %>" class="mt-5" id="bookForm">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="starts_at" id="starts_at" value="">
+
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="block">
+          <span class="text-sm text-slate-700">Faculty supervisor</span>
+          <select name="supervisor_id" required class="mt-1 w-full px-3 py-2 border rounded">
+            <option value="">Select…</option>
+            <% faculty.forEach(function(f){ %>
+              <option value="<%= f.id %>" <%= defaultSupervisor == f.id ? 'selected' : '' %>><%= f.name %> &lt;<%= f.email %>&gt;</option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-sm text-slate-700">Number of samples</span>
+          <input name="sample_count" type="number" min="1" max="100" value="1" class="mt-1 w-full px-3 py-2 border rounded">
+        </label>
+      </div>
+
+      <label class="block mt-3">
+        <span class="text-sm text-slate-700">Purpose / sample description</span>
+        <textarea name="purpose" rows="2" class="mt-1 w-full px-3 py-2 border rounded" placeholder="e.g. wastewater sample BO-9; COD analysis for environmental project"></textarea>
+      </label>
+
+      <div class="mt-5 flex items-center gap-3">
+        <button id="submitBtn" disabled
+                class="bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium text-sm">
+          Submit booking
+        </button>
+        <p class="text-xs text-slate-500">After submission, the technician reviews → then your faculty supervisor.</p>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const CELLS_NEEDED = <%= cellsNeeded %>;
+    const grid = document.getElementById('slotGrid');
+    if (!grid) return;
+    const cells = Array.from(grid.querySelectorAll('.cal-cell'));
+    const startsAtInput = document.getElementById('starts_at');
+    const pickedLabel = document.getElementById('pickedLabel');
+    const submitBtn = document.getElementById('submitBtn');
+    // The server already decided which cells are valid START points and which are
+    // blocked (booked / past / lab-closed). We trust those flags — no re-deriving.
+    const selectable = cells.map((c) => c.dataset.selectable === '1');
+    const blocked = cells.map((c) => c.dataset.blocked === '1');
+    let selected = null;
+
+    // Reset every non-blocked cell to its neutral look (white if it can be part of a
+    // run, i.e. not blocked). Blocked cells keep their server-rendered styling.
+    function resetCell(cell) {
+      cell.classList.remove('bg-emerald-200', 'text-emerald-900', 'bg-rose-100', 'text-rose-700',
+                            'bg-emerald-500', 'text-white', 'ring-2', 'ring-emerald-700');
+      cell.classList.add('bg-white');
+    }
+
+    function clearTransient() {
+      cells.forEach((cell, i) => {
+        if (blocked[i]) return;
+        if (selected !== null && i >= selected && i < selected + CELLS_NEEDED) return;
+        resetCell(cell);
+      });
+    }
+
+    function paintSelection() {
+      if (selected === null) return;
+      for (let j = 0; j < CELLS_NEEDED; j++) {
+        const cell = cells[selected + j];
+        if (!cell) continue;
+        cell.classList.remove('bg-white', 'bg-emerald-200', 'text-emerald-900');
+        cell.classList.add('bg-emerald-500', 'text-white', 'ring-2', 'ring-emerald-700');
+      }
+    }
+
+    // Lock the submit button the instant the form starts submitting, so a double-click
+    // can't fire two POSTs and produce a "slot taken" race against itself.
+    const form = document.getElementById('bookForm');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        if (!startsAtInput.value) {
+          e.preventDefault();
+          alert('Please pick a start time on the timeline first.');
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+      });
+    }
+
+    cells.forEach((cell, i) => {
+      cell.addEventListener('mouseover', () => {
+        clearTransient();
+        if (blocked[i]) return;
+        if (selectable[i]) {
+          // Preview the full run in green.
+          for (let j = 0; j < CELLS_NEEDED; j++) {
+            const c = cells[i + j];
+            if (!c) continue;
+            if (selected !== null && (i + j) >= selected && (i + j) < selected + CELLS_NEEDED) continue;
+            c.classList.remove('bg-white');
+            c.classList.add('bg-emerald-200', 'text-emerald-900');
+          }
+        } else {
+          // Free cell but can't fit a full run here — show why in red.
+          for (let j = 0; j < CELLS_NEEDED && i + j < cells.length; j++) {
+            const c = cells[i + j];
+            if (blocked[i + j]) break;
+            c.classList.remove('bg-white');
+            c.classList.add('bg-rose-100', 'text-rose-700');
+          }
+        }
+      });
+      cell.addEventListener('mouseleave', clearTransient);
+      cell.addEventListener('click', () => {
+        if (!selectable[i]) return;                 // only genuine start points are clickable
+        selected = i;
+        startsAtInput.value = cell.dataset.iso;
+        submitBtn.disabled = false;
+        const d = new Date(cell.dataset.iso);
+        pickedLabel.textContent = 'Selected start: ' + d.toLocaleString('en-IN', {
+          weekday: 'short', day: 'numeric', month: 'short',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        });
+        clearTransient();
+        paintSelection();
+      });
+    });
+  })();
+</script>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<div class="max-w-md mx-auto mt-8 bg-white border rounded-xl shadow-sm p-6">
+  <h1 class="text-xl font-semibold text-slate-900">Sign in</h1>
+  <p class="text-sm text-slate-500 mt-1">Use your institute Google account to continue.</p>
+
+  <% if (oauthConfigured) { %>
+    <a href="/auth/google"
+       class="mt-5 w-full inline-flex items-center justify-center gap-3 border border-slate-300 hover:border-slate-400 hover:bg-slate-50 rounded-lg px-4 py-2.5 font-medium text-slate-700">
+      <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8a12 12 0 110-24c3 0 5.8 1.1 7.9 3l5.7-5.7A20 20 0 1024 44a20 20 0 0019.6-23.5z"/>
+        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8A12 12 0 0124 16c3 0 5.8 1.1 7.9 3l5.7-5.7A20 20 0 006.3 14.7z"/>
+        <path fill="#4CAF50" d="M24 44a20 20 0 0013.5-5.2l-6.2-5.3a12 12 0 01-18-6.3l-6.6 5.1A20 20 0 0024 44z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3a12 12 0 01-4 5.5l6.2 5.3c-.4.4 6.7-4.9 6.7-14.8 0-1.3-.1-2.4-.6-3.5z"/>
+      </svg>
+      Continue with Google
+    </a>
+  <% } else { %>
+    <div class="mt-5 px-3 py-2 rounded bg-amber-50 text-amber-900 border border-amber-200 text-sm">
+      Google login isn't configured yet. The lab admin needs to set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code>.
+    </div>
+  <% } %>
+
+  <% if (devMagicAllowed) { %>
+    <div class="mt-6 border-t pt-5">
+      <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Dev login (no OAuth needed)</div>
+      <form method="post" action="/auth/dev-login" class="space-y-2">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input name="email" type="email" required placeholder="f20231386@hyderabad.bits-pilani.ac.in"
+               class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-brand-500 outline-none">
+        <p class="text-xs text-slate-500">Allowed domains: <%= domains.join(', ') %></p>
+        <button class="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 rounded font-medium">Sign in as this user</button>
+      </form>
+    </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>
