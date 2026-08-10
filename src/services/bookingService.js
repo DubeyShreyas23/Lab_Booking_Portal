@@ -2,6 +2,7 @@ const bookingRepo = require('../repos/bookingRepo');
 const instrumentRepo = require('../repos/instrumentRepo');
 const userRepo = require('../repos/userRepo');
 const holidayRepo = require('../repos/holidayRepo');
+const settingsRepo = require('../repos/settingsRepo');
 const mail = require('../lib/email');
 const { dayjs, decorateBooking } = require('../lib/helpers');
 const { NotFoundError, ConflictError, ForbiddenError, ValidationError } = require('../errors');
@@ -132,10 +133,10 @@ async function createBooking({ student, instrumentId, payload }) {
     throw new ValidationError(`Booking would run past lab close (${pad(instrument.close_hour)}:00). Pick an earlier start.`);
   }
 
-  // Supervisor sanity
-  const supervisor = await userRepo.findById(payload.supervisor_id);
-  if (!supervisor || supervisor.role !== 'faculty') {
-    throw new ValidationError('Selected supervisor is not a faculty member.');
+  // Supervisor is a single configured default (admin Settings), not student-chosen.
+  const supervisor = await resolveDefaultSupervisor();
+  if (!supervisor) {
+    throw new ValidationError('No faculty supervisor is configured yet. Please contact the lab admin.');
   }
 
   // Atomically: re-check conflict & "you already booked this" inside a transaction
@@ -196,6 +197,18 @@ async function createBooking({ student, instrumentId, payload }) {
 }
 
 function pad(n) { return String(n).padStart(2, '0'); }
+
+// The single default supervisor all bookings route to. Configured in admin
+// Settings (default_supervisor_id); falls back to the first faculty on file.
+async function resolveDefaultSupervisor() {
+  const id = await settingsRepo.get('default_supervisor_id');
+  if (id) {
+    const u = await userRepo.findById(Number(id));
+    if (u && u.role === 'faculty') return u;
+  }
+  const facs = await userRepo.listByRole('faculty');
+  return facs[0] || null;
+}
 
 async function technicianApprove({ actor, bookingId }) {
   const b = await bookingRepo.findById(bookingId);
@@ -263,6 +276,7 @@ async function cancelByStudent({ student, bookingId }) {
 module.exports = {
   buildSlots,
   buildDayGrid,
+  resolveDefaultSupervisor,
   createBooking,
   technicianApprove,
   facultyApprove,

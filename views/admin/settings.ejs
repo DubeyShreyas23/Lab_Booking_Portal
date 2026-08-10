@@ -1,0 +1,35 @@
+<%- include('../partials/head') %>
+<h1 class="text-2xl font-semibold text-slate-900 mb-1">Settings</h1>
+<p class="text-sm text-slate-500 mb-5">Lab-wide configuration.</p>
+
+<div class="max-w-xl bg-white border rounded-xl p-5">
+  <form method="post" action="/admin/settings" class="space-y-4 text-sm">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <label class="block">
+      <span class="text-slate-700 font-medium">Default faculty supervisor</span>
+      <p class="text-xs text-slate-500 mb-1">Every booking is routed to this supervisor for final approval.</p>
+      <select name="default_supervisor_id" class="mt-1 w-full px-3 py-2 border rounded">
+        <option value="">— none configured —</option>
+        <% faculty.forEach(function(f){ %>
+          <option value="<%= f.id %>" <%= settings.default_supervisor_id == f.id ? 'selected' : '' %>>
+            <%= f.name %> &lt;<%= f.email %>&gt;
+          </option>
+        <% }) %>
+      </select>
+      <% if (!faculty.length) { %>
+        <p class="text-xs text-amber-700 mt-1">No faculty exist yet. Add one in <a href="/admin/users" class="underline">Users</a> first.</p>
+      <% } %>
+    </label>
+
+    <label class="block">
+      <span class="text-slate-700 font-medium">Contact person</span>
+      <p class="text-xs text-slate-500 mb-1">Shown at the bottom of notification emails.</p>
+      <input name="contact_person" value="<%= settings.contact_person || '' %>"
+             class="mt-1 w-full px-3 py-2 border rounded" placeholder="Prof. Sankar Ganesh Palani">
+    </label>
+
+    <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium">Save settings</button>
+  </form>
+</div>
+<%- include('../partials/foot') %>

@@ -51,4 +51,16 @@ module.exports = {
     const row = await db.get(`SELECT COUNT(*)::int AS c FROM instruments WHERE active = 1`);
     return row.c;
   },
+  async setStatus(id, status) {
+    await db.run(`UPDATE instruments SET status = $1, updated_at = ${db.ISO_NOW} WHERE id = $2`, [status, id]);
+  },
+  // Instrument ids with an approved booking happening right now.
+  async currentlyBookedIds() {
+    const rows = await db.all(`
+      SELECT DISTINCT instrument_id AS id FROM bookings
+      WHERE status = 'approved'
+        AND starts_at::timestamptz <= now() AND ends_at::timestamptz >= now()
+    `);
+    return rows.map((r) => r.id);
+  },
 };

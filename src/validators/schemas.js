@@ -20,7 +20,7 @@ const profileCompletion = z.object({
 
 const createBooking = z.object({
   starts_at: isoDateTime,
-  supervisor_id: z.coerce.number().int().positive(),
+  // supervisor is now a fixed lab-configured default, not student-chosen
   purpose: z.string().trim().max(500).optional().or(z.literal('')),
   sample_count: z.coerce.number().int().min(1).max(100).optional().default(1),
 });

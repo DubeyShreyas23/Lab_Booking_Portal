@@ -15,12 +15,13 @@
         <% } %>
         <% if (user.role === 'faculty' || user.role === 'admin') { %>
           <a href="/admin" class="px-3 py-1.5 rounded hover:bg-slate-100">Dashboard</a>
+          <a href="/admin/inventory" class="px-3 py-1.5 rounded hover:bg-slate-100">Inventory</a>
           <a href="/admin/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
           <a href="/admin/users" class="px-3 py-1.5 rounded hover:bg-slate-100">Users</a>
           <a href="/admin/holidays" class="px-3 py-1.5 rounded hover:bg-slate-100">Holidays</a>
-          <a href="/technician" class="px-3 py-1.5 rounded hover:bg-slate-100">Tech&nbsp;Q</a>
           <a href="/faculty" class="px-3 py-1.5 rounded hover:bg-slate-100">Approvals</a>
           <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
+          <a href="/admin/settings" class="px-3 py-1.5 rounded hover:bg-slate-100">Settings</a>
         <% } %>
         <a href="/kiosk" target="_blank" class="px-3 py-1.5 rounded hover:bg-slate-100 text-slate-500 text-xs">Kiosk ↗</a>
         <span class="ml-2 text-slate-500 hidden md:inline"><%= user.name %></span>

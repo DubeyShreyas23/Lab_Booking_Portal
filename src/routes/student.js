@@ -60,8 +60,7 @@ router.get('/book/:id', async (req, res, next) => {
     const today = dayjs().format('YYYY-MM-DD');
     const date = req.query.date || today;
     const grid = await bookingService.buildDayGrid({ instrument, dateISO: date });
-    const faculty = await userService.listFaculty();
-    const defaultSupervisor = req.user.supervisor_id || (faculty[0] && faculty[0].id) || null;
+    const supervisor = await bookingService.resolveDefaultSupervisor();
 
     // Stale state is the #1 cause of "slot taken" errors. Prevent the back/forward
     // cache from showing an out-of-date grid.
@@ -78,8 +77,7 @@ router.get('/book/:id', async (req, res, next) => {
       stepMinutes: grid.stepMinutes,
       closedAllDay: grid.closedAllDay,
       anySelectable: grid.anySelectable,
-      faculty,
-      defaultSupervisor,
+      supervisor,                  // fixed default supervisor (not student-chosen)
       canBook: req.user.role === 'student',
     });
   } catch (e) { next(e); }

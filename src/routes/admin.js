@@ -3,6 +3,7 @@ const bookingRepo = require('../repos/bookingRepo');
 const instrumentRepo = require('../repos/instrumentRepo');
 const userRepo = require('../repos/userRepo');
 const holidayRepo = require('../repos/holidayRepo');
+const settingsRepo = require('../repos/settingsRepo');
 const instrumentService = require('../services/instrumentService');
 const userService = require('../services/userService');
 const { parseOrThrow } = require('../validators/parse');
@@ -26,6 +27,39 @@ router.get('/', async (req, res, next) => {
       stats: { instruments, users, pending, approvedFuture },
       recent,
     });
+  } catch (e) { next(e); }
+});
+
+// ── Equipment Inventory (counts + status) ────────────────────────────────
+router.get('/inventory', async (req, res, next) => {
+  try {
+    const labFilter = req.query.lab || '';
+    const [all, bookedIds] = await Promise.all([
+      instrumentService.list(),
+      instrumentRepo.currentlyBookedIds(),
+    ]);
+    const active = all.filter((i) => i.active);
+    const bookedSet = new Set(bookedIds);
+    const counts = {
+      total: active.length,
+      working: active.filter((i) => (i.status || 'working') === 'working').length,
+      repair: active.filter((i) => i.status === 'repair').length,
+      booked: active.filter((i) => bookedSet.has(i.id)).length,
+      available: active.filter((i) => (i.status || 'working') === 'working' && !bookedSet.has(i.id)).length,
+    };
+    const labs = [...new Set(active.map((i) => i.lab).filter(Boolean))].sort();
+    const items = (labFilter ? active.filter((i) => i.lab === labFilter) : active)
+      .map((i) => ({ ...i, isBooked: bookedSet.has(i.id) }));
+    res.render('admin/inventory', { title: 'Equipment Inventory', counts, items, labs, labFilter });
+  } catch (e) { next(e); }
+});
+
+router.post('/inventory/:id/status', async (req, res, next) => {
+  try {
+    const status = ['working', 'repair', 'retired'].includes(req.body.status) ? req.body.status : 'working';
+    await instrumentRepo.setStatus(Number(req.params.id), status);
+    req.flash('info', 'Status updated.');
+    res.redirect('back');
   } catch (e) { next(e); }
 });
 
@@ -155,6 +189,28 @@ router.post('/holidays/:id/delete', async (req, res, next) => {
     await holidayRepo.remove(Number(req.params.id));
     req.flash('info', 'Holiday removed.');
     res.redirect('/admin/holidays');
+  } catch (e) { next(e); }
+});
+
+// ── Settings (default supervisor, contact) ───────────────────────────────
+router.get('/settings', async (req, res, next) => {
+  try {
+    const [faculty, settings] = await Promise.all([
+      userService.listFaculty(),
+      settingsRepo.getMany(['default_supervisor_id', 'contact_person', 'lab_name']),
+    ]);
+    res.render('admin/settings', { title: 'Settings', faculty, settings });
+  } catch (e) { next(e); }
+});
+
+router.post('/settings', async (req, res, next) => {
+  try {
+    await settingsRepo.set('default_supervisor_id', req.body.default_supervisor_id || null, req.user.id);
+    if (typeof req.body.contact_person === 'string') {
+      await settingsRepo.set('contact_person', req.body.contact_person.trim(), req.user.id);
+    }
+    req.flash('info', 'Settings saved.');
+    res.redirect('/admin/settings');
   } catch (e) { next(e); }
 });
 
