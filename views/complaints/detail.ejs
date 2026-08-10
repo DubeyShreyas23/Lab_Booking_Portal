@@ -1,0 +1,83 @@
+<%- include('../partials/head') %>
+<%
+  const stColor = { open:'bg-rose-100 text-rose-800', assigned:'bg-amber-100 text-amber-800',
+    in_progress:'bg-sky-100 text-sky-800', resolved:'bg-emerald-100 text-emerald-800', closed:'bg-slate-100 text-slate-600' };
+  const prColor = { high:'bg-rose-100 text-rose-700', medium:'bg-amber-100 text-amber-700', low:'bg-slate-100 text-slate-600' };
+%>
+<div class="grid lg:grid-cols-[1fr_340px] gap-6">
+  <section class="bg-white border rounded-xl p-6">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="text-xs text-slate-500 uppercase tracking-wide">Complaint #<%= complaint.id %></div>
+        <h1 class="text-2xl font-semibold text-slate-900 mt-1"><%= complaint.subject %></h1>
+      </div>
+      <div class="flex gap-1.5">
+        <span class="<%= prColor[complaint.priority] %> px-2 py-0.5 rounded text-xs font-medium h-fit"><%= complaint.priority %></span>
+        <span class="<%= stColor[complaint.status] %> px-2 py-0.5 rounded text-xs font-medium h-fit"><%= complaint.status.replace('_',' ') %></span>
+      </div>
+    </div>
+
+    <dl class="mt-5 grid sm:grid-cols-2 gap-4 text-sm">
+      <div><dt class="text-xs uppercase text-slate-500">Raised by</dt><dd class="mt-0.5"><%= complaint.raiser_name %> <span class="text-xs text-slate-400"><%= complaint.raiser_email %></span></dd></div>
+      <div><dt class="text-xs uppercase text-slate-500">Instrument</dt><dd class="mt-0.5"><%= complaint.instrument_name || '—' %></dd></div>
+      <div><dt class="text-xs uppercase text-slate-500">Category</dt><dd class="mt-0.5"><%= complaint.category || '—' %></dd></div>
+      <div><dt class="text-xs uppercase text-slate-500">Assigned to</dt><dd class="mt-0.5"><%= complaint.assignee_name || '—' %></dd></div>
+      <div class="sm:col-span-2"><dt class="text-xs uppercase text-slate-500">Description</dt><dd class="mt-0.5 text-slate-700 whitespace-pre-line"><%= complaint.description || '—' %></dd></div>
+      <% if (complaint.attachment_url) { %>
+        <div class="sm:col-span-2"><dt class="text-xs uppercase text-slate-500">Attachment</dt><dd class="mt-0.5"><a href="<%= complaint.attachment_url %>" target="_blank" rel="noopener" class="text-brand-600 hover:underline break-all"><%= complaint.attachment_url %></a></dd></div>
+      <% } %>
+      <% if (complaint.resolution) { %>
+        <div class="sm:col-span-2"><dt class="text-xs uppercase text-slate-500">Resolution</dt><dd class="mt-0.5 text-emerald-800 whitespace-pre-line"><%= complaint.resolution %></dd></div>
+      <% } %>
+    </dl>
+
+    <% if (staff) { %>
+      <form method="post" action="/complaints/<%= complaint.id %>/update" class="mt-6 border-t pt-5 space-y-3 text-sm">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="grid sm:grid-cols-3 gap-3">
+          <label class="block">
+            <span class="text-slate-700 text-xs">Status</span>
+            <select name="status" class="mt-1 w-full px-2 py-1.5 border rounded">
+              <% statuses.forEach(function(s){ %><option value="<%= s %>" <%= complaint.status===s?'selected':'' %>><%= s.replace('_',' ') %></option><% }) %>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-slate-700 text-xs">Priority</span>
+            <select name="priority" class="mt-1 w-full px-2 py-1.5 border rounded">
+              <% priorities.forEach(function(p){ %><option value="<%= p %>" <%= complaint.priority===p?'selected':'' %>><%= p %></option><% }) %>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-slate-700 text-xs">Assign to technician</span>
+            <select name="assigned_to" class="mt-1 w-full px-2 py-1.5 border rounded">
+              <option value="">— none —</option>
+              <% assignees.forEach(function(a){ %><option value="<%= a.id %>" <%= complaint.assigned_to==a.id?'selected':'' %>><%= a.name %></option><% }) %>
+            </select>
+          </label>
+        </div>
+        <label class="block">
+          <span class="text-slate-700 text-xs">Resolution note</span>
+          <textarea name="resolution" rows="2" class="mt-1 w-full px-3 py-2 border rounded" placeholder="What was done…"><%= complaint.resolution || '' %></textarea>
+        </label>
+        <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium">Update complaint</button>
+      </form>
+    <% } %>
+  </section>
+
+  <section class="bg-white border rounded-xl p-4">
+    <h2 class="text-sm font-semibold text-slate-700 mb-3">Timeline</h2>
+    <ol class="space-y-3">
+      <% events.forEach(function(e){ %>
+        <li class="flex gap-3">
+          <div class="mt-1 w-2 h-2 rounded-full bg-slate-400"></div>
+          <div class="flex-1">
+            <div class="text-sm text-slate-900"><%= e.event_type.replace(/_/g,' ') %></div>
+            <div class="text-xs text-slate-500"><%= e.actor_name || 'system' %><% if (e.actor_role) { %> · <%= e.actor_role %><% } %> · <%= e.created_at.replace('T',' ').slice(0,16) %></div>
+            <% if (e.detail) { %><div class="text-xs text-slate-700 mt-0.5"><%= e.detail %></div><% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ol>
+  </section>
+</div>
+<%- include('../partials/foot') %>

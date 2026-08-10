@@ -179,6 +179,35 @@ async function init() {
       updated_by INTEGER REFERENCES users(id),
       updated_at TEXT NOT NULL DEFAULT ${ISO_NOW}
     );
+
+    CREATE TABLE IF NOT EXISTS complaints (
+      id            SERIAL PRIMARY KEY,
+      raised_by     INTEGER NOT NULL REFERENCES users(id),
+      instrument_id INTEGER REFERENCES instruments(id),
+      booking_id    INTEGER REFERENCES bookings(id),
+      category      TEXT,
+      subject       TEXT NOT NULL,
+      description   TEXT,
+      priority      TEXT NOT NULL DEFAULT 'medium',   -- low / medium / high
+      status        TEXT NOT NULL DEFAULT 'open',      -- open / assigned / in_progress / resolved / closed
+      assigned_to   INTEGER REFERENCES users(id),
+      attachment_url TEXT,
+      resolution    TEXT,
+      resolved_at   TEXT,
+      created_at    TEXT NOT NULL DEFAULT ${ISO_NOW}
+    );
+    CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints(status);
+    CREATE INDEX IF NOT EXISTS idx_complaints_raised ON complaints(raised_by);
+
+    CREATE TABLE IF NOT EXISTS complaint_events (
+      id           SERIAL PRIMARY KEY,
+      complaint_id INTEGER NOT NULL REFERENCES complaints(id) ON DELETE CASCADE,
+      actor_id     INTEGER REFERENCES users(id),
+      event_type   TEXT NOT NULL,
+      detail       TEXT,
+      created_at   TEXT NOT NULL DEFAULT ${ISO_NOW}
+    );
+    CREATE INDEX IF NOT EXISTS idx_complaint_events_cid ON complaint_events(complaint_id);
   `);
 
   // Forward-safe column adds (no-op if they already exist)

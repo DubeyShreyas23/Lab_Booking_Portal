@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<%
+  const stColor = { open:'bg-rose-100 text-rose-800', assigned:'bg-amber-100 text-amber-800',
+    in_progress:'bg-sky-100 text-sky-800', resolved:'bg-emerald-100 text-emerald-800', closed:'bg-slate-100 text-slate-600' };
+  const prColor = { high:'bg-rose-100 text-rose-700', medium:'bg-amber-100 text-amber-700', low:'bg-slate-100 text-slate-600' };
+%>
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-semibold text-slate-900"><%= staff ? 'Complaints' : 'My complaints' %></h1>
+    <p class="text-sm text-slate-500"><%= staff ? 'Raised by lab users.' : 'Issues you have reported.' %></p>
+  </div>
+  <a href="/complaints/new" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium text-sm">+ Raise complaint</a>
+</div>
+
+<% if (staff) { %>
+  <div class="flex flex-wrap gap-2 mb-3 text-sm">
+    <span class="text-slate-500">Status:</span>
+    <a href="/complaints" class="px-2.5 py-1 rounded <%= !status ? 'bg-brand-500 text-white' : 'bg-white border hover:bg-slate-50' %>">All</a>
+    <% ['open','assigned','in_progress','resolved','closed'].forEach(function(s){ %>
+      <a href="/complaints?status=<%= s %>" class="px-2.5 py-1 rounded <%= status===s ? 'bg-brand-500 text-white' : 'bg-white border hover:bg-slate-50' %>"><%= s.replace('_',' ') %></a>
+    <% }) %>
+  </div>
+<% } %>
+
+<div class="bg-white border rounded-xl overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 text-slate-600 text-left text-xs">
+      <tr>
+        <th class="px-3 py-2">#</th>
+        <th class="px-3 py-2">Subject</th>
+        <th class="px-3 py-2">Instrument</th>
+        <% if (staff) { %><th class="px-3 py-2">Raised by</th><% } %>
+        <th class="px-3 py-2">Priority</th>
+        <th class="px-3 py-2">Status</th>
+        <th class="px-3 py-2">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      <% complaints.forEach(function(c){ %>
+        <tr>
+          <td class="px-3 py-2 text-xs text-slate-400"><%= c.id %></td>
+          <td class="px-3 py-2 font-medium"><a href="/complaints/<%= c.id %>" class="hover:underline"><%= c.subject %></a></td>
+          <td class="px-3 py-2 text-xs"><%= c.instrument_name || '—' %></td>
+          <% if (staff) { %><td class="px-3 py-2 text-xs"><%= c.raiser_name %></td><% } %>
+          <td class="px-3 py-2"><span class="<%= prColor[c.priority] %> px-2 py-0.5 rounded text-xs font-medium"><%= c.priority %></span></td>
+          <td class="px-3 py-2"><span class="<%= stColor[c.status] %> px-2 py-0.5 rounded text-xs font-medium"><%= c.status.replace('_',' ') %></span></td>
+          <td class="px-3 py-2 text-xs text-slate-500"><%= c.created_at.slice(0,10) %></td>
+        </tr>
+      <% }) %>
+      <% if (!complaints.length) { %>
+        <tr><td colspan="<%= staff ? 7 : 6 %>" class="px-3 py-8 text-center text-slate-500">No complaints.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/foot') %>

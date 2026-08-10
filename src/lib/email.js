@@ -118,4 +118,37 @@ module.exports = {
         SIG(),
     });
   },
+
+  async complaintRaisedMail(to, complaint) {
+    return sendMail({
+      to: to.email,
+      subject: `New Complaint (#${complaint.id}) — ${complaint.priority.toUpperCase()} priority`,
+      text:
+        `Dear ${to.name},\n\n` +
+        `Greetings from BEST Lab!\n\n` +
+        `A new complaint has been raised by ${complaint.raiser_name}.\n\n` +
+        `Subject: ${complaint.subject}\n` +
+        (complaint.instrument_name ? `Instrument: ${complaint.instrument_name}\n` : '') +
+        `Priority: ${complaint.priority}\n` +
+        (complaint.description ? `Details: ${complaint.description}\n` : '') +
+        `\nPlease sign-in to the portal to review and act on it.\n` +
+        PORTAL() +
+        SIG(),
+    });
+  },
+
+  async complaintUpdatedMail(to, complaint) {
+    return sendMail({
+      to: to.email,
+      subject: `Your Complaint (#${complaint.id}) is now ${complaint.status.replace('_', ' ')}`,
+      text:
+        `Dear ${to.name},\n\n` +
+        `Greetings from BEST Lab!\n\n` +
+        `The status of your complaint "${complaint.subject}" has been updated to: ${complaint.status.replace('_', ' ')}.\n` +
+        (complaint.resolution ? `\nResolution: ${complaint.resolution}\n` : '') +
+        `\nPlease sign-in to the portal to view details.\n` +
+        PORTAL() +
+        SIG(),
+    });
+  },
 };

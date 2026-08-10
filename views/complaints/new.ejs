@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<div class="max-w-xl mx-auto">
+  <h1 class="text-2xl font-semibold text-slate-900 mb-1">Raise a complaint</h1>
+  <p class="text-sm text-slate-500 mb-4">Report an instrument fault, booking issue, or anything else. The supervisor and technician are notified.</p>
+
+  <form method="post" action="/complaints" class="bg-white border rounded-xl p-5 space-y-4 text-sm">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <label class="block">
+      <span class="text-slate-700 font-medium">Subject</span>
+      <input name="subject" required maxlength="160" class="mt-1 w-full px-3 py-2 border rounded" placeholder="e.g. GC not powering on">
+    </label>
+
+    <div class="grid sm:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="text-slate-700">Instrument <span class="text-slate-400">(optional)</span></span>
+        <select name="instrument_id" class="mt-1 w-full px-3 py-2 border rounded">
+          <option value="">— not specific —</option>
+          <% instruments.forEach(function(i){ %>
+            <option value="<%= i.id %>"><%= i.code %> · <%= i.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label class="block">
+        <span class="text-slate-700">Priority</span>
+        <select name="priority" class="mt-1 w-full px-3 py-2 border rounded">
+          <% priorities.forEach(function(p){ %>
+            <option value="<%= p %>" <%= p==='medium'?'selected':'' %>><%= p %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+
+    <label class="block">
+      <span class="text-slate-700">Category <span class="text-slate-400">(optional)</span></span>
+      <input name="category" class="mt-1 w-full px-3 py-2 border rounded" placeholder="instrument fault / booking dispute / safety / other">
+    </label>
+
+    <label class="block">
+      <span class="text-slate-700">Description</span>
+      <textarea name="description" rows="4" class="mt-1 w-full px-3 py-2 border rounded" placeholder="Describe the issue in detail…"></textarea>
+    </label>
+
+    <label class="block">
+      <span class="text-slate-700">Attachment link <span class="text-slate-400">(optional)</span></span>
+      <input name="attachment_url" type="url" class="mt-1 w-full px-3 py-2 border rounded" placeholder="https://drive.google.com/… (photo or document)">
+      <p class="text-xs text-slate-400 mt-1">Paste a link to a photo/document (e.g. Google Drive). Direct file upload coming soon.</p>
+    </label>
+
+    <div class="flex gap-2">
+      <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium">Submit complaint</button>
+      <a href="/complaints" class="px-4 py-2 rounded border">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/foot') %>

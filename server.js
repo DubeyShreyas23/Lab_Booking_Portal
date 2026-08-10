@@ -16,6 +16,7 @@ const studentRoutes = require('./src/routes/student');
 const approvalRoutes = require('./src/routes/approvals');
 const adminRoutes = require('./src/routes/admin');
 const bookingDetailRoutes = require('./src/routes/bookings');
+const complaintRoutes = require('./src/routes/complaints');
 const reportRoutes = require('./src/routes/reports');
 const kioskRoutes = require('./src/routes/kiosk');
 const db = require('./src/db');
@@ -84,6 +85,7 @@ app.get('/healthz', (_req, res) => res.json({ ok: true })); // before auth-guard
 app.use('/', kioskRoutes);          // public — no auth
 app.use('/', authRoutes);
 app.use('/', bookingDetailRoutes);
+app.use('/', complaintRoutes);
 app.use('/', studentRoutes);
 app.use('/', approvalRoutes);
 app.use('/reports', reportRoutes);
