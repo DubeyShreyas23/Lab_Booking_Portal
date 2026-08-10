@@ -9,7 +9,7 @@ function renderUsageReport(res, { title, filters, rows, summary, lab }) {
 
   // Header band
   doc.rect(36, 36, doc.page.width - 72, 50).fill('#1a56db');
-  doc.fillColor('white').fontSize(14).font('Helvetica-Bold').text(lab.name || 'Central Analytical Laboratory', 48, 50);
+  doc.fillColor('white').fontSize(14).font('Helvetica-Bold').text(lab.name || 'BEST Lab', 48, 50);
   doc.fontSize(9).font('Helvetica').text(lab.address || 'BITS Pilani Hyderabad Campus', 48, 68);
   doc.fontSize(9).text('Generated: ' + dayjs().format('DD MMM YYYY, HH:mm'), 0, 68, { align: 'right', width: doc.page.width - 48 });
 

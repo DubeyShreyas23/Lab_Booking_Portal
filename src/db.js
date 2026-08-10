@@ -188,11 +188,19 @@ async function init() {
   await addCol('users', 'id_no', 'TEXT');
   await addCol('instruments', 'make_model', 'TEXT');
   await addCol('instruments', 'slot_step_minutes', 'INTEGER NOT NULL DEFAULT 30');
+  await addCol('instruments', 'lab', 'TEXT');                          // PURSE / EBT / FSM
+  await addCol('instruments', 'asset_no', 'TEXT');
+  await addCol('instruments', 'parameters', 'TEXT');                   // what it analyzes
+  await addCol('instruments', 'category', 'TEXT');                     // Major / Minor
+  await addCol('instruments', 'status', "TEXT NOT NULL DEFAULT 'working'"); // working / repair / retired
+  await addCol('instruments', 'booking_mode', "TEXT NOT NULL DEFAULT 'hourly'"); // hourly / daily
+  await addCol('instruments', 'duration_days', 'INTEGER');             // for daily-mode equipment
   await addCol('bookings', 'sample_count', 'INTEGER DEFAULT 1');
   await addCol('bookings', 'closure_requested_at', 'TEXT');
+  await addCol('bookings', 'booking_mode', "TEXT NOT NULL DEFAULT 'hourly'");
 
   const defaults = {
-    lab_name: 'Central Analytical Laboratory',
+    lab_name: 'BEST Lab',
     lab_address: 'BITS Pilani Hyderabad Campus',
     contact_person: 'Dr Ramakrishnan Ganesan',
   };

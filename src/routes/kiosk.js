@@ -26,7 +26,7 @@ router.get('/kiosk', async (req, res, next) => {
     }
 
     res.render('kiosk', {
-      title: 'Today at CAL',
+      title: 'Today at BEST Lab',
       today,
       instruments,
       byInstrument,

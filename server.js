@@ -61,7 +61,7 @@ app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.flashInfo = req.flash('info');
   res.locals.flashError = req.flash('error');
-  res.locals.appName = 'Central Analytical Laboratory';
+  res.locals.appName = 'BEST Lab';
   res.locals.csrfToken = null; // overridden by exposeCsrf below for GETs that render
   next();
 });
@@ -110,7 +110,7 @@ async function start() {
   }
 
   app.listen(PORT, () => {
-    console.log(`CAL portal running at http://localhost:${PORT}`);
+    console.log(`BEST Lab portal running at http://localhost:${PORT}`);
     console.log(`OAuth: ${authService.isOAuthConfigured() ? 'Google configured' : 'NOT configured — dev login enabled'}`);
   });
 }

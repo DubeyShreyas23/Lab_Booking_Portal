@@ -33,7 +33,7 @@ router.get('/pdf', async (req, res, next) => {
       filters: humanFilters(filters, req.user),
       rows,
       summary: reportRepo.summarize(rows),
-      lab: { name: 'Central Analytical Laboratory', address: 'BITS Pilani Hyderabad Campus' },
+      lab: { name: 'BEST Lab', address: 'BITS Pilani Hyderabad Campus' },
     });
   } catch (e) { next(e); }
 });
