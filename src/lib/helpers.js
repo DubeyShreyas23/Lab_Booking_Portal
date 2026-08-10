@@ -31,6 +31,10 @@ function formatTime(iso) {
 
 function durationLabel(startIso, endIso) {
   const mins = dayjs(endIso).diff(dayjs(startIso), 'minute');
+  if (mins >= 1440 && mins % 1440 === 0) {
+    const d = mins / 1440;
+    return `${d} day${d > 1 ? 's' : ''}`;
+  }
   if (mins % 60 === 0) return `${mins / 60} hr`;
   const h = Math.floor(mins / 60);
   const m = mins % 60;

@@ -50,6 +50,16 @@ module.exports = {
     const row = await db.get(sql, params);
     return !!row;
   },
+  async upcomingForInstrument(instrumentId) {
+    return db.all(`
+      SELECT b.starts_at, b.ends_at, b.status, s.name AS student_name
+      FROM bookings b JOIN users s ON s.id = b.student_id
+      WHERE b.instrument_id = $1
+        AND b.status IN ('pending_technician','pending_faculty','approved')
+        AND b.ends_at::timestamptz >= now()
+      ORDER BY b.starts_at ASC
+    `, [instrumentId]);
+  },
   async sameDay({ instrumentId, dateISO }) {
     return db.all(`
       SELECT b.id, b.starts_at, b.ends_at, b.status, b.student_id, s.name AS student_name

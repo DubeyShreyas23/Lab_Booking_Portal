@@ -1,0 +1,99 @@
+<%- include('../partials/head') %>
+
+<div class="bg-white border rounded-xl p-6">
+  <div class="flex items-baseline justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-slate-900"><%= instrument.name %> <span class="text-sm text-slate-400 font-normal">(<%= instrument.code %>)</span></h1>
+      <p class="text-sm text-slate-500"><%= instrument.parameters || instrument.description || '' %></p>
+    </div>
+    <a href="/instruments" class="text-xs text-slate-500 hover:underline">← All instruments</a>
+  </div>
+
+  <div class="mt-4 px-4 py-3 rounded-lg bg-sky-50 border border-sky-200 text-sm text-sky-900">
+    This is a <strong>multi-day</strong> instrument. A booking runs for <strong><%= durationDays %> day<%= durationDays>1?'s':'' %></strong>.
+    Pick a start date — the end date is calculated automatically.
+  </div>
+
+  <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 text-sm">
+    <div><dt class="text-slate-500 text-xs">Lab</dt><dd><%= instrument.lab || '—' %></dd></div>
+    <div><dt class="text-slate-500 text-xs">Make</dt><dd><%= instrument.make_model || '—' %></dd></div>
+    <div><dt class="text-slate-500 text-xs">Run length</dt><dd class="font-semibold text-brand-700"><%= durationDays %> day<%= durationDays>1?'s':'' %></dd></div>
+    <div><dt class="text-slate-500 text-xs">Category</dt><dd><%= instrument.category || '—' %></dd></div>
+  </dl>
+
+  <% if (upcoming && upcoming.length) { %>
+    <div class="mt-5">
+      <h2 class="text-sm font-semibold text-slate-700 mb-2">Already booked / pending</h2>
+      <ul class="text-sm divide-y border rounded-lg overflow-hidden">
+        <% upcoming.forEach(function(b){ %>
+          <li class="px-3 py-2 flex items-center justify-between bg-rose-50/40">
+            <span><%= b.starts_at.slice(0,10) %> → <%= b.ends_at.slice(0,10) %></span>
+            <span class="text-xs text-slate-500"><%= b.student_name %> · <%= b.status.replace('_',' ') %></span>
+          </li>
+        <% }) %>
+      </ul>
+      <p class="text-xs text-slate-500 mt-1">Pick a start date whose <%= durationDays %>-day window doesn't overlap the above.</p>
+    </div>
+  <% } %>
+
+  <% if (typeof canBook !== 'undefined' && !canBook) { %>
+    <div class="mt-5 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
+      You are signed in as <strong><%= user.role %></strong>. Only students can submit bookings.
+    </div>
+  <% } else { %>
+  <form method="post" action="/book/<%= instrument.id %>" class="mt-6 space-y-4" id="dailyForm">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <div class="grid sm:grid-cols-2 gap-3">
+      <label class="block">
+        <span class="text-sm text-slate-700">Start date</span>
+        <input type="date" name="date" id="startDate" required min="<%= today %>"
+               class="mt-1 w-full px-3 py-2 border rounded">
+      </label>
+      <div class="block">
+        <span class="text-sm text-slate-700">End date (auto)</span>
+        <div id="endDate" class="mt-1 w-full px-3 py-2 border rounded bg-slate-50 text-slate-600 text-sm">—</div>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-3">
+      <div class="block">
+        <span class="text-sm text-slate-700">Faculty supervisor</span>
+        <div class="mt-1 w-full px-3 py-2 border rounded bg-slate-50 text-slate-700 text-sm">
+          <% if (supervisor) { %><%= supervisor.name %><% } else { %><span class="text-amber-700">Not configured</span><% } %>
+        </div>
+      </div>
+      <label class="block">
+        <span class="text-sm text-slate-700">Number of samples</span>
+        <input name="sample_count" type="number" min="1" max="100" value="1" class="mt-1 w-full px-3 py-2 border rounded">
+      </label>
+    </div>
+
+    <label class="block">
+      <span class="text-sm text-slate-700">Purpose / sample description</span>
+      <textarea name="purpose" rows="2" class="mt-1 w-full px-3 py-2 border rounded" placeholder="e.g. anaerobic digestion batch #3"></textarea>
+    </label>
+
+    <div class="flex items-center gap-3">
+      <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium text-sm">Submit booking</button>
+      <p class="text-xs text-slate-500">Technician reviews → then your faculty supervisor.</p>
+    </div>
+  </form>
+  <% } %>
+</div>
+
+<script>
+  (function () {
+    var DAYS = <%= durationDays %>;
+    var start = document.getElementById('startDate');
+    var end = document.getElementById('endDate');
+    if (!start) return;
+    start.addEventListener('change', function () {
+      if (!start.value) { end.textContent = '—'; return; }
+      var d = new Date(start.value + 'T00:00:00');
+      d.setDate(d.getDate() + DAYS);
+      end.textContent = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    });
+  })();
+</script>
+<%- include('../partials/foot') %>

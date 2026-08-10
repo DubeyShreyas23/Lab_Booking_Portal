@@ -58,13 +58,22 @@ router.get('/book/:id', async (req, res, next) => {
   try {
     const instrument = await instrumentService.findActive(Number(req.params.id));
     const today = dayjs().format('YYYY-MM-DD');
+    const supervisor = await bookingService.resolveDefaultSupervisor();
+    res.set('Cache-Control', 'no-store, must-revalidate');
+
+    // Multi-day equipment uses a date-range picker instead of the hourly timeline.
+    if (instrument.booking_mode === 'daily') {
+      const upcoming = (await bookingRepo.upcomingForInstrument(instrument.id)).map(decorateBooking);
+      return res.render('student/book-daily', {
+        title: `Book ${instrument.name}`,
+        instrument, today, supervisor, upcoming,
+        durationDays: instrument.duration_days || 1,
+        canBook: req.user.role === 'student',
+      });
+    }
+
     const date = req.query.date || today;
     const grid = await bookingService.buildDayGrid({ instrument, dateISO: date });
-    const supervisor = await bookingService.resolveDefaultSupervisor();
-
-    // Stale state is the #1 cause of "slot taken" errors. Prevent the back/forward
-    // cache from showing an out-of-date grid.
-    res.set('Cache-Control', 'no-store, must-revalidate');
 
     res.render('student/book', {
       title: `Book ${instrument.name}`,
@@ -84,19 +93,25 @@ router.get('/book/:id', async (req, res, next) => {
 });
 
 router.post('/book/:id', requireRole('student'), async (req, res, next) => {
+  const instrumentId = Number(req.params.id);
   try {
-    const payload = parseOrThrow(createBooking, req.body);
-    await bookingService.createBooking({
-      student: req.user,
-      instrumentId: Number(req.params.id),
-      payload,
-    });
+    const instrument = await instrumentService.findActive(instrumentId);
+    if (instrument.booking_mode === 'daily') {
+      await bookingService.createDailyBooking({
+        student: req.user,
+        instrumentId,
+        payload: { date: req.body.date, purpose: req.body.purpose, sample_count: req.body.sample_count },
+      });
+    } else {
+      const payload = parseOrThrow(createBooking, req.body);
+      await bookingService.createBooking({ student: req.user, instrumentId, payload });
+    }
     req.flash('info', 'Booking submitted. You will receive an email once the technician reviews it.');
     res.redirect('/');
   } catch (e) {
     if (e.code === 'CONFLICT' || e.code === 'VALIDATION') {
       req.flash('error', e.message);
-      return res.redirect(`/book/${req.params.id}?date=${(req.body.starts_at || '').slice(0,10) || dayjs().format('YYYY-MM-DD')}`);
+      return res.redirect(`/book/${instrumentId}`);
     }
     next(e);
   }

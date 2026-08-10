@@ -210,6 +210,67 @@ async function resolveDefaultSupervisor() {
   return facs[0] || null;
 }
 
+// ── Multi-day (date-range) booking, for daily-mode equipment ──────────────
+// The instrument's duration_days is fixed; the student picks a START date and
+// the booking spans that many days (e.g. a 30-day bioreactor run).
+async function createDailyBooking({ student, instrumentId, payload }) {
+  const instrument = await instrumentRepo.findActiveById(instrumentId);
+  if (!instrument) throw new NotFoundError('Instrument');
+
+  const durationDays = instrument.duration_days || 1;
+  const dateStr = String(payload.date || '').slice(0, 10);
+  const start = dayjs(`${dateStr}T${pad(instrument.open_hour)}:00:00`);
+  if (!dateStr || !start.isValid()) throw new ValidationError('Please pick a valid start date.');
+
+  const startsAt = start.toISOString();
+  const endsAt = start.add(durationDays, 'day').toISOString();
+
+  if (start.isBefore(dayjs().startOf('day'))) {
+    throw new ValidationError('Cannot book a start date in the past.');
+  }
+  if (await holidayRepo.isClosedOn({ dateISO: dateStr, instrumentId: instrument.id })) {
+    throw new ConflictError('The lab is closed on that start date. Please pick another.');
+  }
+
+  const supervisor = await resolveDefaultSupervisor();
+  if (!supervisor) throw new ValidationError('No faculty supervisor is configured yet. Please contact the lab admin.');
+
+  const newId = await db.tx(async (client) => {
+    const mine = (await client.query(
+      `SELECT id FROM bookings WHERE student_id=$1 AND instrument_id=$2
+        AND status IN ('pending_technician','pending_faculty','approved')
+        AND NOT (ends_at <= $3 OR starts_at >= $4) LIMIT 1`,
+      [student.id, instrument.id, startsAt, endsAt])).rows[0];
+    if (mine) throw new ConflictError('You already have a booking overlapping these dates for this instrument.');
+
+    const clash = (await client.query(
+      `SELECT 1 FROM bookings WHERE instrument_id=$1
+        AND status IN ('pending_technician','pending_faculty','approved')
+        AND NOT (ends_at <= $2 OR starts_at >= $3) LIMIT 1`,
+      [instrument.id, startsAt, endsAt])).rows[0];
+    if (clash) throw new ConflictError('Those dates overlap an existing booking. Please pick another start date.');
+
+    const inserted = (await client.query(
+      `INSERT INTO bookings (student_id, instrument_id, supervisor_id, starts_at, ends_at, purpose, sample_count, booking_mode, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,'daily','pending_technician') RETURNING id`,
+      [student.id, instrument.id, supervisor.id, startsAt, endsAt, payload.purpose || null, payload.sample_count || 1])).rows[0];
+    return inserted.id;
+  });
+
+  const booking = await bookingRepo.findById(newId);
+  await bookingRepo.log({ bookingId: booking.id, actorId: student.id, action: 'submitted' });
+  await bookingRepo.logEvent({ bookingId: booking.id, actorId: student.id, eventType: 'submitted', toStatus: 'pending_technician' });
+
+  if (instrument.technician_id) {
+    const tech = await userRepo.findById(instrument.technician_id);
+    if (tech) {
+      const decorated = decorateBooking({ ...booking, instrument_name: instrument.name, student_name: student.name });
+      mail.pendingTechnicianMail(tech, decorated).catch((e) => console.error('mail fail', e));
+    }
+  }
+  return booking;
+}
+
 async function technicianApprove({ actor, bookingId }) {
   const b = await bookingRepo.findById(bookingId);
   if (!b) throw new NotFoundError('Booking');
@@ -278,6 +339,7 @@ module.exports = {
   buildDayGrid,
   resolveDefaultSupervisor,
   createBooking,
+  createDailyBooking,
   technicianApprove,
   facultyApprove,
   reject,
