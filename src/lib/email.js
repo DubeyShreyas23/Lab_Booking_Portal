@@ -24,15 +24,22 @@ function fromHeader() {
 async function sendMail({ to, subject, text }) {
   const tx = getTransporter();
   const payload = { from: fromHeader(), to, subject, text };
+  if (!to) {
+    console.warn(`[email] SKIPPED "${subject}" — no recipient (is an Equipment Incharge assigned?)`);
+    return { skipped: true };
+  }
   if (!tx) {
-    console.log('\n────── EMAIL (no SMTP configured) ──────');
-    console.log('To:     ', to);
-    console.log('Subject:', subject);
-    console.log(text);
-    console.log('───────────────────────────────────────\n');
+    console.warn(`[email] SMTP NOT CONFIGURED — would have sent "${subject}" to ${to}. Set SMTP_HOST/USER/PASS.`);
     return { mocked: true };
   }
-  return tx.sendMail(payload);
+  try {
+    const info = await tx.sendMail(payload);
+    console.log(`[email] SENT to ${to} — "${subject}" — id=${info.messageId || 'n/a'}`);
+    return info;
+  } catch (e) {
+    console.error(`[email] FAILED to ${to} — "${subject}": ${e.message}`);
+    throw e;
+  }
 }
 
 const SIG = () =>

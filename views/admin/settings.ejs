@@ -39,4 +39,14 @@
     <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium">Save settings</button>
   </form>
 </div>
+
+<div class="max-w-xl bg-white border rounded-xl p-5 mt-5">
+  <h2 class="text-sm font-semibold text-slate-900">Test the email pipeline</h2>
+  <p class="text-xs text-slate-500 mt-1">Sends a test email so you can confirm SMTP/Brevo is delivering. The result is shown above after sending.</p>
+  <form method="post" action="/admin/test-email" class="mt-3 flex flex-col sm:flex-row gap-2">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input name="to" type="email" value="<%= user.email %>" class="flex-1 px-3 py-2 border rounded text-sm" placeholder="you@hyderabad.bits-pilani.ac.in">
+    <button class="bg-slate-800 hover:bg-slate-900 text-white text-sm px-4 py-2 rounded font-medium">Send test email</button>
+  </form>
+</div>
 <%- include('../partials/foot') %>

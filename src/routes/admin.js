@@ -6,6 +6,7 @@ const userRepo = require('../repos/userRepo');
 const holidayRepo = require('../repos/holidayRepo');
 const settingsRepo = require('../repos/settingsRepo');
 const appConfig = require('../lib/appConfig');
+const mail = require('../lib/email');
 const instrumentService = require('../services/instrumentService');
 const userService = require('../services/userService');
 const { parseOrThrow } = require('../validators/parse');
@@ -264,6 +265,27 @@ router.post('/settings', async (req, res, next) => {
     req.flash('info', 'Settings saved.');
     res.redirect('/admin/settings');
   } catch (e) { next(e); }
+});
+
+// Send a test email to verify the SMTP/Brevo pipeline end to end.
+router.post('/test-email', async (req, res, next) => {
+  const to = (req.body.to || req.user.email || '').trim();
+  try {
+    if (!to) { req.flash('error', 'Enter an email address to test.'); return res.redirect('/admin/settings'); }
+    const result = await mail.sendMail({
+      to,
+      subject: 'BEST Lab — test email',
+      text: 'This is a test email from the BEST Lab portal.\n\nIf you received this, your email pipeline (SMTP/Brevo) is working correctly.\n\nRegards,\nBEST Lab',
+    });
+    if (result && result.mocked) {
+      req.flash('error', 'SMTP is not configured on the server (SMTP_HOST missing). No real email was sent — add the Brevo SMTP env vars in Render.');
+    } else {
+      req.flash('info', `Test email sent to ${to}. Check that inbox and your Brevo → Transactional → Logs.`);
+    }
+  } catch (e) {
+    req.flash('error', `Test email failed: ${e.message}`);
+  }
+  res.redirect('/admin/settings');
 });
 
 // ── Clean up seeded demo data ─────────────────────────────────────────────
