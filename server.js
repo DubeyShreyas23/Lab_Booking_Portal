@@ -1,3 +1,7 @@
+// Run in India Standard Time regardless of the host's timezone (Render is UTC).
+// This must be set before any Date/dayjs usage, so it's the very first line.
+process.env.TZ = process.env.TZ || 'Asia/Kolkata';
+
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
