@@ -157,6 +157,30 @@ router.post('/users/:id', async (req, res, next) => {
   }
 });
 
+// Delete a single user. Blocked for yourself, the default supervisor, and any
+// user still referenced by bookings/complaints (data integrity).
+router.post('/users/:id/delete', async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (id === req.user.id) { req.flash('error', 'You cannot delete your own account.'); return res.redirect('/admin/users'); }
+    const defaultSup = await settingsRepo.get('default_supervisor_id');
+    if (defaultSup && Number(defaultSup) === id) {
+      req.flash('error', 'This user is the default supervisor. Change the supervisor in Settings first.');
+      return res.redirect('/admin/users');
+    }
+    try {
+      await db.run(`UPDATE instruments SET technician_id = NULL WHERE technician_id = $1`, [id]);
+      await db.run(`UPDATE instruments SET created_by = NULL WHERE created_by = $1`, [id]);
+      await db.run(`UPDATE users SET supervisor_id = NULL WHERE supervisor_id = $1`, [id]);
+      await db.run(`DELETE FROM users WHERE id = $1`, [id]);
+      req.flash('info', 'User deleted.');
+    } catch (_) {
+      req.flash('error', 'Cannot delete: this user has bookings or complaints on record. Change their role instead.');
+    }
+    res.redirect('/admin/users');
+  } catch (e) { next(e); }
+});
+
 // ── Holidays ─────────────────────────────────────────────────────────────
 router.get('/holidays', async (req, res, next) => {
   try {

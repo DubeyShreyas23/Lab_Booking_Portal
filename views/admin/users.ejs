@@ -6,36 +6,43 @@
     <header class="px-4 py-2 text-xs uppercase tracking-wide text-slate-500 bg-slate-50 border-b">All users</header>
     <div class="divide-y">
       <% users.forEach(function(u){ %>
-        <form method="post" action="/admin/users/<%= u.id %>"
-              class="px-4 py-3 grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 items-center text-sm">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <div class="col-span-2 md:col-span-1 min-w-0">
-            <div class="font-medium truncate"><%= u.name %></div>
-            <div class="text-xs text-slate-500 truncate"><%= u.email %></div>
-          </div>
-          <label class="block">
-            <span class="text-[10px] uppercase text-slate-400 md:hidden">Role</span>
-            <select name="role" class="w-full px-2 py-1 border rounded text-xs">
-              <% ['student','technician','faculty','admin'].forEach(function(r){ %>
-                <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= r %></option>
-              <% }) %>
-            </select>
-          </label>
-          <label class="block">
-            <span class="text-[10px] uppercase text-slate-400 md:hidden">Supervisor</span>
-            <select name="supervisor_id" class="w-full px-2 py-1 border rounded text-xs">
-              <option value="">—</option>
-              <% faculty.forEach(function(f){ %>
-                <option value="<%= f.id %>" <%= u.supervisor_id==f.id?'selected':'' %>><%= f.name %></option>
-              <% }) %>
-            </select>
-          </label>
-          <label class="block">
-            <span class="text-[10px] uppercase text-slate-400 md:hidden">Department</span>
-            <input name="department" value="<%= u.department || '' %>" class="w-full px-2 py-1 border rounded text-xs" placeholder="Dept">
-          </label>
-          <button class="justify-self-end bg-brand-500 hover:bg-brand-600 text-white text-xs px-3 py-1.5 rounded">Save</button>
-        </form>
+        <div class="px-4 py-3 flex items-start gap-2">
+          <form method="post" action="/admin/users/<%= u.id %>"
+                class="flex-1 grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 items-center text-sm">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="col-span-2 md:col-span-1 min-w-0">
+              <div class="font-medium truncate"><%= u.name %></div>
+              <div class="text-xs text-slate-500 truncate"><%= u.email %></div>
+            </div>
+            <label class="block">
+              <span class="text-[10px] uppercase text-slate-400 md:hidden">Role</span>
+              <select name="role" class="w-full px-2 py-1 border rounded text-xs">
+                <% ['student','technician','faculty','admin'].forEach(function(r){ %>
+                  <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= r %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-[10px] uppercase text-slate-400 md:hidden">Supervisor</span>
+              <select name="supervisor_id" class="w-full px-2 py-1 border rounded text-xs">
+                <option value="">—</option>
+                <% faculty.forEach(function(f){ %>
+                  <option value="<%= f.id %>" <%= u.supervisor_id==f.id?'selected':'' %>><%= f.name %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-[10px] uppercase text-slate-400 md:hidden">Department</span>
+              <input name="department" value="<%= u.department || '' %>" class="w-full px-2 py-1 border rounded text-xs" placeholder="Dept">
+            </label>
+            <button class="justify-self-end bg-brand-500 hover:bg-brand-600 text-white text-xs px-3 py-1.5 rounded">Save</button>
+          </form>
+          <form method="post" action="/admin/users/<%= u.id %>/delete" class="pt-0.5"
+                onsubmit="return confirm('Delete <%= u.name %> (<%= u.email %>)? This cannot be undone.')">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button title="Delete user" class="text-rose-600 hover:text-rose-700 text-xs px-2 py-1.5">✕</button>
+          </form>
+        </div>
       <% }) %>
     </div>
   </section>
