@@ -26,6 +26,7 @@
           <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
           <a href="/admin/settings" class="px-3 py-1.5 rounded hover:bg-slate-100">Settings</a>
         <% } %>
+        <a href="/contact" class="px-3 py-1.5 rounded hover:bg-slate-100">Contact</a>
         <a href="/kiosk" target="_blank" class="px-3 py-1.5 rounded hover:bg-slate-100 text-slate-500 text-xs">Kiosk ↗</a>
         <span class="ml-2 text-slate-500 hidden md:inline"><%= user.name %></span>
         <form method="post" action="/logout" class="inline">
@@ -34,7 +35,10 @@
         </form>
       </nav>
     <% } else { %>
-      <a href="/login" class="text-sm text-brand-600 hover:underline">Sign in</a>
+      <nav class="flex items-center gap-3 text-sm">
+        <a href="/contact" class="text-slate-600 hover:text-brand-600 hover:underline">Contact</a>
+        <a href="/login" class="text-brand-600 hover:underline">Sign in</a>
+      </nav>
     <% } %>
   </div>
 </header>
