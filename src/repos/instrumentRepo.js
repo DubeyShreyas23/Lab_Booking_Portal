@@ -54,6 +54,9 @@ module.exports = {
   async setStatus(id, status) {
     await db.run(`UPDATE instruments SET status = $1, updated_at = ${db.ISO_NOW} WHERE id = $2`, [status, id]);
   },
+  async setTechnician(id, technicianId) {
+    await db.run(`UPDATE instruments SET technician_id = $1, updated_at = ${db.ISO_NOW} WHERE id = $2`, [technicianId, id]);
+  },
   // Instrument ids with an approved booking happening right now.
   async currentlyBookedIds() {
     const rows = await db.all(`

@@ -36,9 +36,10 @@ router.get('/', async (req, res, next) => {
 router.get('/inventory', async (req, res, next) => {
   try {
     const labFilter = req.query.lab || '';
-    const [all, bookedIds] = await Promise.all([
+    const [all, bookedIds, technicians] = await Promise.all([
       instrumentService.list(),
       instrumentRepo.currentlyBookedIds(),
+      userService.listTechnicians(),
     ]);
     const active = all.filter((i) => i.active);
     const bookedSet = new Set(bookedIds);
@@ -52,7 +53,16 @@ router.get('/inventory', async (req, res, next) => {
     const labs = [...new Set(active.map((i) => i.lab).filter(Boolean))].sort();
     const items = (labFilter ? active.filter((i) => i.lab === labFilter) : active)
       .map((i) => ({ ...i, isBooked: bookedSet.has(i.id) }));
-    res.render('admin/inventory', { title: 'Equipment Inventory', counts, items, labs, labFilter });
+    res.render('admin/inventory', { title: 'Equipment Inventory', counts, items, labs, labFilter, technicians });
+  } catch (e) { next(e); }
+});
+
+router.post('/inventory/:id/technician', async (req, res, next) => {
+  try {
+    const techId = req.body.technician_id ? Number(req.body.technician_id) : null;
+    await instrumentRepo.setTechnician(Number(req.params.id), techId);
+    req.flash('info', 'Technician assigned.');
+    res.redirect(req.get('Referer') || '/admin/inventory');
   } catch (e) { next(e); }
 });
 

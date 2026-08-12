@@ -56,7 +56,18 @@
           <td class="px-3 py-2 text-xs">
             <% if (i.isBooked) { %><span class="text-amber-700 font-medium">In use now</span><% } else { %><span class="text-slate-400">Free</span><% } %>
           </td>
-          <td class="px-3 py-2 text-xs"><%= i.technician_name || '—' %></td>
+          <td class="px-3 py-2 text-xs">
+            <form method="post" action="/admin/inventory/<%= i.id %>/technician" class="inline">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <select name="technician_id" onchange="this.form.submit()"
+                class="px-2 py-1 border rounded text-xs <%= i.technician_id ? '' : 'border-amber-300 text-amber-700' %>">
+                <option value="">— none —</option>
+                <% technicians.forEach(function(t){ %>
+                  <option value="<%= t.id %>" <%= i.technician_id==t.id?'selected':'' %>><%= t.name %></option>
+                <% }) %>
+              </select>
+            </form>
+          </td>
           <td class="px-3 py-2">
             <form method="post" action="/admin/inventory/<%= i.id %>/status" class="inline">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
