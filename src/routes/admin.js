@@ -232,7 +232,6 @@ router.post('/cleanup-demo', async (req, res, next) => {
       'rganesan@hyderabad.bits-pilani.ac.in',
       'tech.gc@hyderabad.bits-pilani.ac.in',
       'tech.cod@hyderabad.bits-pilani.ac.in',
-      'p20250086@hyderabad.bits-pilani.ac.in',
     ];
     const defaultSup = await settingsRepo.get('default_supervisor_id');
     let removed = 0, kept = 0;
@@ -245,6 +244,7 @@ router.post('/cleanup-demo', async (req, res, next) => {
       try {
         await db.run(`UPDATE instruments SET technician_id = NULL WHERE technician_id = $1`, [u.id]);
         await db.run(`UPDATE instruments SET created_by = NULL WHERE created_by = $1`, [u.id]);
+        await db.run(`UPDATE users SET supervisor_id = NULL WHERE supervisor_id = $1`, [u.id]);
         await db.run(`DELETE FROM users WHERE id = $1`, [u.id]);
         removed++;
       } catch (_) { kept++; }   // referenced by bookings/events → leave it in place

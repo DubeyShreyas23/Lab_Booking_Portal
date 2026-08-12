@@ -231,7 +231,7 @@ async function init() {
   const defaults = {
     lab_name: 'BEST Lab',
     lab_address: 'BITS Pilani Hyderabad Campus',
-    contact_person: 'Dr Ramakrishnan Ganesan',
+    contact_person: 'Prof. Sankar Ganesh Palani',
   };
   for (const [k, v] of Object.entries(defaults)) {
     await pool.query(

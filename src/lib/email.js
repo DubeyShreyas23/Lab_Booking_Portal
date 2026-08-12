@@ -38,7 +38,7 @@ async function sendMail({ to, subject, text }) {
 const SIG = () =>
   `\nRegards,\nBEST Lab\nBITS Pilani Hyderabad Campus\n\n` +
   `Note: This is a system generated mail. Please do not reply to this message.\n` +
-  `For more information, please contact ${process.env.LAB_CONTACT || 'Prof. P. Sankar Ganesh'}`;
+  `For more information, please contact ${process.env.LAB_CONTACT || 'Prof. Sankar Ganesh Palani'}`;
 
 const PORTAL = () => `\nPortal Link: ${process.env.PORTAL_URL || 'http://localhost:' + (process.env.PORTAL_PORT || process.env.PORT || 3000)}\n`;
 

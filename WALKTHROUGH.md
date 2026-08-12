@@ -189,7 +189,7 @@ Open `http://localhost:3000/login` → dev-login box → sign in as:
 
 | Role | Email |
 |---|---|
-| Student | `p20250086@hyderabad.bits-pilani.ac.in` |
+| Student | `f20231386@hyderabad.bits-pilani.ac.in` |
 | Technician | `tech.cod@hyderabad.bits-pilani.ac.in` |
 | Professor | `sangan@hyderabad.bits-pilani.ac.in` |
 | Admin | `admin@hyderabad.bits-pilani.ac.in` |

@@ -177,11 +177,10 @@ listed in `ALLOWED_DOMAINS`. Personal Gmail accounts are rejected.
 |---|---|
 | Admin | `admin@hyderabad.bits-pilani.ac.in` |
 | Faculty | `sangan@hyderabad.bits-pilani.ac.in` |
-| Faculty | `rganesan@hyderabad.bits-pilani.ac.in` |
 | Technician | `tech.gc@hyderabad.bits-pilani.ac.in` |
 | Technician | `tech.cod@hyderabad.bits-pilani.ac.in` |
+| Technician | `p20250086@hyderabad.bits-pilani.ac.in` |
 | Student | `f20231386@hyderabad.bits-pilani.ac.in` |
-| Student | `p20250086@hyderabad.bits-pilani.ac.in` |
 
 With Google OAuth, only people with the real institute Google accounts
 matching these emails can sign in. In dev mode you can sign in as any of

@@ -3,13 +3,12 @@ const db = require('./db');
 
 // Idempotent demo seed — safe to run multiple times. Requires DATABASE_URL.
 const seedUsers = [
-  { email: 'admin@hyderabad.bits-pilani.ac.in',     name: 'Lab Administrator',       phone: '+91 9000000000', role: 'admin' },
-  { email: 'sangan@hyderabad.bits-pilani.ac.in',    name: 'Prof. P. Sankar Ganesh',  phone: '+91 9000000001', role: 'faculty', department: 'Biological Sciences' },
-  { email: 'rganesan@hyderabad.bits-pilani.ac.in',  name: 'Dr Ramakrishnan Ganesan', phone: '+91 9000000002', role: 'faculty', department: 'Chemistry' },
-  { email: 'tech.gc@hyderabad.bits-pilani.ac.in',   name: 'GC Technician',           phone: '+91 9000000003', role: 'technician' },
-  { email: 'tech.cod@hyderabad.bits-pilani.ac.in',  name: 'COD Technician',          phone: '+91 9000000004', role: 'technician' },
-  { email: 'p20250086@hyderabad.bits-pilani.ac.in', name: 'Balamanikandan R',        phone: '+91 6380963983', role: 'student', department: 'Biological Sciences' },
-  { email: 'f20231386@hyderabad.bits-pilani.ac.in', name: 'Demo Student',            phone: '+91 9000000010', role: 'student' },
+  { email: 'admin@hyderabad.bits-pilani.ac.in',     name: 'Lab Administrator',           phone: '+91 9000000000', role: 'admin' },
+  { email: 'sangan@hyderabad.bits-pilani.ac.in',    name: 'Prof. Sankar Ganesh Palani',  phone: '+91 9000000001', role: 'faculty', department: 'Biological Sciences' },
+  { email: 'tech.gc@hyderabad.bits-pilani.ac.in',   name: 'GC Technician',               phone: '+91 9000000003', role: 'technician' },
+  { email: 'tech.cod@hyderabad.bits-pilani.ac.in',  name: 'COD Technician',              phone: '+91 9000000004', role: 'technician' },
+  { email: 'p20250086@hyderabad.bits-pilani.ac.in', name: 'Balamanikandan R',            phone: '+91 6380963983', role: 'technician', department: 'Biological Sciences' },
+  { email: 'f20231386@hyderabad.bits-pilani.ac.in', name: 'Demo Student',                phone: '+91 9000000010', role: 'student' },
 ];
 
 const seedInstruments = [
@@ -38,10 +37,7 @@ async function main() {
     userIds[u.email] = row.id;
   }
 
-  await db.run(`UPDATE users SET supervisor_id = $1 WHERE email = $2`,
-    [userIds['sangan@hyderabad.bits-pilani.ac.in'], 'p20250086@hyderabad.bits-pilani.ac.in']);
-  await db.run(`UPDATE users SET supervisor_id = $1 WHERE email = $2`,
-    [userIds['rganesan@hyderabad.bits-pilani.ac.in'], 'f20231386@hyderabad.bits-pilani.ac.in']);
+  // (Prof. Sankar Ganesh Palani is the sole faculty / default supervisor.)
 
   for (const i of seedInstruments) {
     await db.run(
