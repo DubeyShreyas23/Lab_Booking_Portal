@@ -19,6 +19,7 @@ const bookingDetailRoutes = require('./src/routes/bookings');
 const complaintRoutes = require('./src/routes/complaints');
 const reportRoutes = require('./src/routes/reports');
 const kioskRoutes = require('./src/routes/kiosk');
+const pageRoutes = require('./src/routes/pages');
 const db = require('./src/db');
 
 const app = express();
@@ -83,6 +84,7 @@ app.use(exposeCsrf);
 // ── Routes ───────────────────────────────────────────────────────────────
 app.get('/healthz', (_req, res) => res.json({ ok: true })); // before auth-guarded routers
 app.use('/', kioskRoutes);          // public — no auth
+app.use('/', pageRoutes);           // public — /contact
 app.use('/', authRoutes);
 app.use('/', bookingDetailRoutes);
 app.use('/', complaintRoutes);
