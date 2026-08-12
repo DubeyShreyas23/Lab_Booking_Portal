@@ -1,5 +1,5 @@
 <%- include('partials/head') %>
-<h1 class="text-2xl font-semibold text-slate-900 mb-1"><%= stage === 'technician' ? 'Technician queue' : 'Faculty approvals' %></h1>
+<h1 class="text-2xl font-semibold text-slate-900 mb-1"><%= stage === 'technician' ? 'Equipment Incharge queue' : 'Faculty approvals' %></h1>
 <p class="text-sm text-slate-500 mb-5">
   <% if (stage === 'technician') { %>
     Review pending requests for instruments under your care. Approve to forward to faculty, or reject with a reason.

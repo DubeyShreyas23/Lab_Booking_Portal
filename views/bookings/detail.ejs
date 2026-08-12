@@ -51,7 +51,7 @@
       </div>
       <% if (booking.technician_notes) { %>
         <div class="sm:col-span-2">
-          <dt class="text-xs uppercase text-slate-500">Technician notes</dt>
+          <dt class="text-xs uppercase text-slate-500">Equipment Incharge notes</dt>
           <dd class="mt-0.5 text-slate-700"><%= booking.technician_notes %></dd>
         </div>
       <% } %>
@@ -70,7 +70,7 @@
           <div class="flex-1">
             <div class="text-sm text-slate-900"><%= e.event_type.replace(/_/g,' ') %></div>
             <div class="text-xs text-slate-500">
-              <%= e.actor_name || 'system' %><% if (e.actor_role) { %> · <%= e.actor_role %><% } %>
+              <%= e.actor_name || 'system' %><% if (e.actor_role) { %> · <%= roleLabel(e.actor_role) %><% } %>
               · <%= e.created_at.replace('T',' ').slice(0,16) %>
             </div>
             <% if (e.detail) { %>

@@ -18,7 +18,7 @@
               <span class="text-[10px] uppercase text-slate-400 md:hidden">Role</span>
               <select name="role" class="w-full px-2 py-1 border rounded text-xs">
                 <% ['student','technician','faculty','admin'].forEach(function(r){ %>
-                  <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= r %></option>
+                  <option value="<%= r %>" <%= u.role===r?'selected':'' %>><%= roleLabel(r) %></option>
                 <% }) %>
               </select>
             </label>
@@ -64,7 +64,7 @@
         <span class="text-slate-700">Role</span>
         <select name="role" class="mt-1 w-full px-3 py-2 border rounded">
           <option value="student">Student</option>
-          <option value="technician">Technician</option>
+          <option value="technician">Equipment Incharge</option>
           <option value="faculty">Faculty</option>
           <option value="admin">Admin</option>
         </select>

@@ -48,7 +48,7 @@
             </select>
           </label>
           <label class="block">
-            <span class="text-slate-700 text-xs">Assign to technician</span>
+            <span class="text-slate-700 text-xs">Assign to equipment incharge</span>
             <select name="assigned_to" class="mt-1 w-full px-2 py-1.5 border rounded">
               <option value="">— none —</option>
               <% assignees.forEach(function(a){ %><option value="<%= a.id %>" <%= complaint.assigned_to==a.id?'selected':'' %>><%= a.name %></option><% }) %>
@@ -72,7 +72,7 @@
           <div class="mt-1 w-2 h-2 rounded-full bg-slate-400"></div>
           <div class="flex-1">
             <div class="text-sm text-slate-900"><%= e.event_type.replace(/_/g,' ') %></div>
-            <div class="text-xs text-slate-500"><%= e.actor_name || 'system' %><% if (e.actor_role) { %> · <%= e.actor_role %><% } %> · <%= e.created_at.replace('T',' ').slice(0,16) %></div>
+            <div class="text-xs text-slate-500"><%= e.actor_name || 'system' %><% if (e.actor_role) { %> · <%= roleLabel(e.actor_role) %><% } %> · <%= e.created_at.replace('T',' ').slice(0,16) %></div>
             <% if (e.detail) { %><div class="text-xs text-slate-700 mt-0.5"><%= e.detail %></div><% } %>
           </div>
         </li>

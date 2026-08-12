@@ -1,4 +1,5 @@
 // Passport sets req.user via deserializeUser. This module exposes route guards.
+const { roleLabel } = require('../lib/helpers');
 
 function loadUser(req, _res, next) {
   // Passport already populated req.user; nothing to do here.
@@ -19,7 +20,7 @@ function requireRole(...roles) {
     if (!roles.includes(req.user.role)) {
       return res.status(403).render('error', {
         title: 'Forbidden',
-        message: `Your role (${req.user.role}) is not permitted to access this page.`,
+        message: `Your role (${roleLabel(req.user.role)}) is not permitted to access this page.`,
       });
     }
     next();

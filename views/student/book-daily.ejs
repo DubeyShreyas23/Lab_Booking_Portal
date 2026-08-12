@@ -38,7 +38,7 @@
 
   <% if (typeof canBook !== 'undefined' && !canBook) { %>
     <div class="mt-5 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
-      You are signed in as <strong><%= user.role %></strong>. Only students can submit bookings.
+      You are signed in as <strong><%= roleLabel(user.role) %></strong>. Only students can submit bookings.
     </div>
   <% } else { %>
   <form method="post" action="/book/<%= instrument.id %>" class="mt-6 space-y-4" id="dailyForm">
@@ -76,7 +76,7 @@
 
     <div class="flex items-center gap-3">
       <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded font-medium text-sm">Submit booking</button>
-      <p class="text-xs text-slate-500">Technician reviews → then your faculty supervisor.</p>
+      <p class="text-xs text-slate-500">Equipment incharge reviews → then your faculty supervisor.</p>
     </div>
   </form>
   <% } %>

@@ -1,7 +1,7 @@
 <%- include('../partials/head') %>
 <div class="max-w-xl mx-auto">
   <h1 class="text-2xl font-semibold text-slate-900 mb-1">Raise a complaint</h1>
-  <p class="text-sm text-slate-500 mb-4">Report an instrument fault, booking issue, or anything else. The supervisor and technician are notified.</p>
+  <p class="text-sm text-slate-500 mb-4">Report an instrument fault, booking issue, or anything else. The supervisor and equipment incharge are notified.</p>
 
   <form method="post" action="/complaints" class="bg-white border rounded-xl p-5 space-y-4 text-sm">
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">

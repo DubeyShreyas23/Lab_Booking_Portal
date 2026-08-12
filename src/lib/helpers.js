@@ -21,6 +21,17 @@ function inferRoleFromEmail(email) {
   return null; // let admin assign
 }
 
+// Display label for a role. Internal value stays 'technician'; users see
+// "Equipment Incharge". Keeps routes/data unchanged.
+function roleLabel(role) {
+  return {
+    student: 'Student',
+    technician: 'Equipment Incharge',
+    faculty: 'Faculty',
+    admin: 'Admin',
+  }[role] || role;
+}
+
 function formatDateLong(iso) {
   return dayjs(iso).format('DD MMMM YYYY');
 }
@@ -55,6 +66,7 @@ module.exports = {
   allowedDomains,
   isInstituteEmail,
   inferRoleFromEmail,
+  roleLabel,
   formatDateLong,
   formatTime,
   durationLabel,

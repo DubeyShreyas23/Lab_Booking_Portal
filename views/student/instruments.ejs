@@ -16,7 +16,7 @@
         <span>🕘 <%= String(i.open_hour).padStart(2,'0') %>:00 – <%= String(i.close_hour).padStart(2,'0') %>:00</span>
       </div>
       <% if (i.technician_name) { %>
-        <div class="text-xs text-slate-400 mt-2">Technician: <%= i.technician_name %></div>
+        <div class="text-xs text-slate-400 mt-2">Equipment Incharge: <%= i.technician_name %></div>
       <% } %>
     </a>
   <% }) %>
