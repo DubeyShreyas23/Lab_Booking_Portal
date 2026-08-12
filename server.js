@@ -25,6 +25,7 @@ const reportRoutes = require('./src/routes/reports');
 const kioskRoutes = require('./src/routes/kiosk');
 const pageRoutes = require('./src/routes/pages');
 const db = require('./src/db');
+const appConfig = require('./src/lib/appConfig');
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -67,7 +68,7 @@ app.use((req, res, next) => {
   res.locals.user = req.user || null;
   res.locals.flashInfo = req.flash('info');
   res.locals.flashError = req.flash('error');
-  res.locals.appName = 'BEST Lab';
+  res.locals.appName = appConfig.getName();
   res.locals.csrfToken = null; // overridden by exposeCsrf below for GETs that render
   next();
 });
@@ -103,6 +104,7 @@ app.use(errorHandler);
 // ── Startup ────────────────────────────────────────────────────────────────
 async function start() {
   await db.init();
+  await appConfig.refresh();
 
   // Auto-seed first admin if configured and none exists yet.
   if (process.env.SEED_ADMIN_EMAIL) {

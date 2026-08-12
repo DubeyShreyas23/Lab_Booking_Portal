@@ -5,6 +5,7 @@ const instrumentRepo = require('../repos/instrumentRepo');
 const userRepo = require('../repos/userRepo');
 const holidayRepo = require('../repos/holidayRepo');
 const settingsRepo = require('../repos/settingsRepo');
+const appConfig = require('../lib/appConfig');
 const instrumentService = require('../services/instrumentService');
 const userService = require('../services/userService');
 const { parseOrThrow } = require('../validators/parse');
@@ -245,6 +246,10 @@ router.post('/settings', async (req, res, next) => {
     await settingsRepo.set('default_supervisor_id', req.body.default_supervisor_id || null, req.user.id);
     if (typeof req.body.contact_person === 'string') {
       await settingsRepo.set('contact_person', req.body.contact_person.trim(), req.user.id);
+    }
+    if (typeof req.body.lab_name === 'string' && req.body.lab_name.trim()) {
+      await settingsRepo.set('lab_name', req.body.lab_name.trim(), req.user.id);
+      await appConfig.refresh();   // update the cached site name shown in nav/footer/titles
     }
     req.flash('info', 'Settings saved.');
     res.redirect('/admin/settings');

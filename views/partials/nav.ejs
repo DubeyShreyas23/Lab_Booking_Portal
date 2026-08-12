@@ -1,10 +1,10 @@
-<header class="bg-white border-b">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-    <a href="/" class="flex items-center">
-      <img src="/img/best-lab-logo.png" alt="BITS Environmental Science & Technology (BEST) Lab" class="h-8 w-auto">
+<header class="bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center shrink-0 transition hover:opacity-90">
+      <img src="/img/best-lab-logo.png" alt="BITS Environmental Science & Technology (BEST) Lab" class="h-11 w-auto">
     </a>
     <% if (user) { %>
-      <nav class="flex items-center gap-1 text-sm">
+      <nav class="flex items-center gap-0.5 text-sm text-slate-600 font-medium">
         <% if (user.role === 'student') { %>
           <a href="/" class="px-3 py-1.5 rounded hover:bg-slate-100">My bookings</a>
           <a href="/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
