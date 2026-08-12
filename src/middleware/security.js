@@ -9,6 +9,10 @@ function buildHelmet() {
         defaultSrc: ["'self'"],
         // Tailwind/Alpine via CDN. tighten in prod by self-hosting.
         scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net"],
+        // Allow inline event handlers (onchange/onsubmit) — the date picker,
+        // inventory status dropdown, and confirm dialogs rely on them. Helmet
+        // defaults script-src-attr to 'none', which was blocking these.
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc:  ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc:   ["'self'", "https://fonts.gstatic.com"],
         imgSrc:    ["'self'", "data:"],
