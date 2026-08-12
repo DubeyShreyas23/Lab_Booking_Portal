@@ -1,4 +1,5 @@
 const express = require('express');
+const db = require('../db');
 const bookingRepo = require('../repos/bookingRepo');
 const instrumentRepo = require('../repos/instrumentRepo');
 const userRepo = require('../repos/userRepo');
@@ -211,6 +212,49 @@ router.post('/settings', async (req, res, next) => {
     }
     req.flash('info', 'Settings saved.');
     res.redirect('/admin/settings');
+  } catch (e) { next(e); }
+});
+
+// ── Clean up seeded demo data ─────────────────────────────────────────────
+// Deactivates the 5 demo instruments and removes the demo users — but never
+// touches the current admin, the configured default supervisor, or any user/
+// instrument that is actually in use (bookings etc. block the delete → kept).
+router.post('/cleanup-demo', async (req, res, next) => {
+  try {
+    const demoCodes = ['GC', 'COD', 'HPLC', 'FTIR', 'UV'];
+    const inst = await db.run(
+      `UPDATE instruments SET active = 0, technician_id = NULL WHERE code = ANY($1)`,
+      [demoCodes],
+    );
+
+    const demoEmails = [
+      'admin@hyderabad.bits-pilani.ac.in',
+      'rganesan@hyderabad.bits-pilani.ac.in',
+      'tech.gc@hyderabad.bits-pilani.ac.in',
+      'tech.cod@hyderabad.bits-pilani.ac.in',
+      'p20250086@hyderabad.bits-pilani.ac.in',
+    ];
+    const defaultSup = await settingsRepo.get('default_supervisor_id');
+    let removed = 0, kept = 0;
+
+    for (const email of demoEmails) {
+      const u = await db.get(`SELECT id FROM users WHERE lower(email) = lower($1)`, [email]);
+      if (!u) continue;
+      if (u.id === req.user.id) { kept++; continue; }                       // never delete yourself
+      if (defaultSup && Number(defaultSup) === u.id) { kept++; continue; }  // never delete the supervisor
+      try {
+        await db.run(`UPDATE instruments SET technician_id = NULL WHERE technician_id = $1`, [u.id]);
+        await db.run(`UPDATE instruments SET created_by = NULL WHERE created_by = $1`, [u.id]);
+        await db.run(`DELETE FROM users WHERE id = $1`, [u.id]);
+        removed++;
+      } catch (_) { kept++; }   // referenced by bookings/events → leave it in place
+    }
+
+    req.flash('info',
+      `Demo cleanup complete: ${inst.rowCount || 0} demo instruments deactivated, ` +
+      `${removed} demo user${removed === 1 ? '' : 's'} removed` +
+      (kept ? `, ${kept} kept (in use or protected).` : '.'));
+    res.redirect('/admin');
   } catch (e) { next(e); }
 });
 
