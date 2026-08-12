@@ -169,13 +169,25 @@ router.post('/users/:id/delete', async (req, res, next) => {
       return res.redirect('/admin/users');
     }
     try {
-      await db.run(`UPDATE instruments SET technician_id = NULL WHERE technician_id = $1`, [id]);
-      await db.run(`UPDATE instruments SET created_by = NULL WHERE created_by = $1`, [id]);
-      await db.run(`UPDATE users SET supervisor_id = NULL WHERE supervisor_id = $1`, [id]);
-      await db.run(`DELETE FROM users WHERE id = $1`, [id]);
+      // Null every *optional* link to this user (supervisor/technician/actor/
+      // recipient), then delete. Only their OWN bookings (student_id) or raised
+      // complaints (raised_by) — both NOT NULL — can still block, which is correct.
+      await db.tx(async (c) => {
+        await c.query(`UPDATE instruments      SET technician_id = NULL WHERE technician_id = $1`, [id]);
+        await c.query(`UPDATE instruments      SET created_by    = NULL WHERE created_by    = $1`, [id]);
+        await c.query(`UPDATE users            SET supervisor_id = NULL WHERE supervisor_id = $1`, [id]);
+        await c.query(`UPDATE bookings         SET supervisor_id = NULL WHERE supervisor_id = $1`, [id]);
+        await c.query(`UPDATE bookings         SET technician_id = NULL WHERE technician_id = $1`, [id]);
+        await c.query(`UPDATE booking_events   SET actor_id      = NULL WHERE actor_id      = $1`, [id]);
+        await c.query(`UPDATE audit_log        SET actor_id      = NULL WHERE actor_id      = $1`, [id]);
+        await c.query(`UPDATE notifications    SET to_user_id    = NULL WHERE to_user_id    = $1`, [id]);
+        await c.query(`UPDATE complaints       SET assigned_to   = NULL WHERE assigned_to   = $1`, [id]);
+        await c.query(`UPDATE complaint_events SET actor_id      = NULL WHERE actor_id      = $1`, [id]);
+        await c.query(`DELETE FROM users WHERE id = $1`, [id]);
+      });
       req.flash('info', 'User deleted.');
     } catch (_) {
-      req.flash('error', 'Cannot delete: this user has bookings or complaints on record. Change their role instead.');
+      req.flash('error', 'Cannot delete: this user has their own bookings or complaints on record. Change their role to a non-faculty role instead.');
     }
     res.redirect('/admin/users');
   } catch (e) { next(e); }
