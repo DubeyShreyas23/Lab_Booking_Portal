@@ -11,6 +11,12 @@ function getTransporter() {
     auth: process.env.SMTP_USER
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
       : undefined,
+    // Without these, a blocked/slow connection to the SMTP host hangs forever
+    // instead of failing with a clear error — that's what caused the page to
+    // spin indefinitely on "Send test email".
+    connectionTimeout: 10000, // time to establish the TCP connection
+    greetingTimeout: 10000,   // time to receive the SMTP greeting
+    socketTimeout: 15000,     // time allowed for the whole send
   });
   return transporter;
 }
