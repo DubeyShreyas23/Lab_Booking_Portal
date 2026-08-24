@@ -27,23 +27,67 @@ function fromHeader() {
   return `${name} <${addr}>`;
 }
 
+// Brevo's HTTP API — sends over normal HTTPS (port 443), which is never
+// blocked by hosts. This is the primary path because Render (and many other
+// free-tier hosts) block outbound SMTP ports (587/465/25) entirely, which
+// makes nodemailer/SMTP hang or time out no matter how it's configured.
+async function sendViaBrevoApi({ to, subject, text }) {
+  const name = process.env.MAIL_FROM_NAME || 'BEST Lab';
+  const email = process.env.MAIL_FROM_ADDRESS || 'cal-online@hyderabad.bits-pilani.ac.in';
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name, email },
+      to: [{ email: to }],
+      subject,
+      textContent: text,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Brevo API ${res.status}: ${body.slice(0, 300)}`);
+  }
+  const data = await res.json().catch(() => ({}));
+  return { messageId: data.messageId };
+}
+
 async function sendMail({ to, subject, text }) {
-  const tx = getTransporter();
-  const payload = { from: fromHeader(), to, subject, text };
   if (!to) {
     console.warn(`[email] SKIPPED "${subject}" — no recipient (is an Equipment Incharge assigned?)`);
     return { skipped: true };
   }
+
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const info = await sendViaBrevoApi({ to, subject, text });
+      console.log(`[email] SENT (Brevo API) to ${to} — "${subject}" — id=${info.messageId || 'n/a'}`);
+      return info;
+    } catch (e) {
+      console.error(`[email] FAILED (Brevo API) to ${to} — "${subject}": ${e.message}`);
+      throw e;
+    }
+  }
+
+  // Fallback: plain SMTP (works fine locally / on hosts that don't block it).
+  const tx = getTransporter();
+  const payload = { from: fromHeader(), to, subject, text };
   if (!tx) {
-    console.warn(`[email] SMTP NOT CONFIGURED — would have sent "${subject}" to ${to}. Set SMTP_HOST/USER/PASS.`);
+    console.warn(`[email] NOT CONFIGURED — would have sent "${subject}" to ${to}. Set BREVO_API_KEY (recommended) or SMTP_HOST/USER/PASS.`);
     return { mocked: true };
   }
   try {
     const info = await tx.sendMail(payload);
-    console.log(`[email] SENT to ${to} — "${subject}" — id=${info.messageId || 'n/a'}`);
+    console.log(`[email] SENT (SMTP) to ${to} — "${subject}" — id=${info.messageId || 'n/a'}`);
     return info;
   } catch (e) {
-    console.error(`[email] FAILED to ${to} — "${subject}": ${e.message}`);
+    console.error(`[email] FAILED (SMTP) to ${to} — "${subject}": ${e.message}`);
     throw e;
   }
 }
