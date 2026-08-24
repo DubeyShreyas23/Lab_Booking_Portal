@@ -288,6 +288,135 @@ router.post('/test-email', async (req, res, next) => {
   res.redirect('/admin/settings');
 });
 
+// ── Broadcast announcement ────────────────────────────────────────────────
+// Sends one email (same subject+body) to every real lab member — anyone with
+// role student/technician/faculty. Admin accounts are excluded (you don't
+// need to email yourself). Recipients are shown BEFORE sending so nothing
+// goes out until you've reviewed the exact list.
+const DEFAULT_BROADCAST_SUBJECT = 'BEST Lab equipment booking is finally live! \u{1F389}';
+const DEFAULT_BROADCAST_BODY = `Hi everyone,
+
+Quick personal note before the "official" bit — I built this in whatever free
+time I could scrape together between coursework and my internship, so if it
+has a few rough edges in the first week, please be patient with me! And if
+you ever want to chat about it (or anything else), I'm always up for coffee.
+Just ping me.
+
+Now, the official part:
+
+I'm happy to announce that the BEST Lab Equipment Booking Portal is now LIVE.
+No more chasing people on WhatsApp or waiting around to find out if an
+instrument is free — it's all online now.
+
+Portal link: https://cal-portal.onrender.com
+
+WHAT IT DOES
+------------
+Think of it as one shared calendar for every instrument in PURSE, EBT, and
+FSM labs, with a simple three-step approval built in:
+
+1. You pick an instrument and a time slot and submit a request.
+2. The instrument's Equipment Incharge gets notified automatically and
+   approves (or lets you know if something's off).
+3. Prof. Sankar Ganesh gives the final sign-off, and you're confirmed.
+
+You'll get an email at every single step — when you submit, when it's
+approved, or if it's rejected (with a reason) — so you're never left
+wondering what's happening with your request.
+
+A few other things it does:
+  - Shows you exactly which time slots are already taken, so there's no
+    guessing or double-booking.
+  - Handles both short experiments (book an hour or two) and long ones like
+    bioreactor runs (book a full date range).
+  - Has a "raise a complaint" button if an instrument is faulty or something
+    needs attention — goes straight to the right people.
+  - A screen can be set up outside the lab showing what's booked today, at a
+    glance.
+
+HOW TO USE IT
+-------------
+1. Go to https://cal-portal.onrender.com
+2. Click "Sign in" and log in with your institute Google account
+   (your @hyderabad.bits-pilani.ac.in email).
+3. Browse instruments, pick a free slot, and submit your request.
+4. Check "My bookings" any time to see the status.
+
+If you're one of the Equipment Incharges, you'll also see a "Queue" tab —
+that's where booking requests for your instrument(s) show up for you to
+approve or reject.
+
+That's really it. If anything is confusing, broken, or just doesn't make
+sense, tell me — I'd genuinely rather hear about it than have you struggle
+through it silently.
+
+Excited for this to actually make things easier for all of us.
+
+(One more thing — this email was sent automatically through the portal's own
+notification pipeline, the same system that'll email you every time a
+booking is submitted, approved, or rejected. If you're reading this, it
+means the whole thing is working end-to-end. Consider this the first test!)
+
+Cheers,
+Shreyas Dubey
+f20231386@hyderabad.bits-pilani.ac.in`;
+
+router.get('/broadcast', async (req, res, next) => {
+  try {
+    const recipients = await db.all(
+      `SELECT id, name, email, role FROM users WHERE role IN ('student','technician','faculty') ORDER BY role, name`,
+    );
+    res.render('admin/broadcast', {
+      title: 'Send announcement',
+      recipients,
+      defaultSubject: DEFAULT_BROADCAST_SUBJECT,
+      defaultBody: DEFAULT_BROADCAST_BODY,
+      result: null,
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/broadcast', async (req, res, next) => {
+  try {
+    const subject = String(req.body.subject || '').trim();
+    const body = String(req.body.body || '').trim();
+    if (!subject || !body) {
+      req.flash('error', 'Subject and message are required.');
+      return res.redirect('/admin/broadcast');
+    }
+
+    const recipients = await db.all(
+      `SELECT id, name, email, role FROM users WHERE role IN ('student','technician','faculty') ORDER BY role, name`,
+    );
+
+    const results = [];
+    for (const r of recipients) {
+      try {
+        await mail.sendMail({ to: r.email, subject, text: body });
+        results.push({ ...r, ok: true });
+      } catch (e) {
+        results.push({ ...r, ok: false, error: e.message });
+      }
+    }
+
+    const sent = results.filter((r) => r.ok).length;
+    const failed = results.filter((r) => !r.ok).length;
+    if (failed === 0) {
+      req.flash('info', `Broadcast sent to all ${sent} recipients.`);
+    } else {
+      req.flash('error', `Sent to ${sent}, failed for ${failed}. See details below.`);
+    }
+
+    res.render('admin/broadcast', {
+      title: 'Send announcement',
+      recipients,
+      defaultSubject: subject,
+      defaultBody: body,
+      result: results,
+    });
+  } catch (e) { next(e); }
+});
+
 // ── Clean up seeded demo data ─────────────────────────────────────────────
 // Deactivates the 5 demo instruments and removes the demo users — but never
 // touches the current admin, the configured default supervisor, or any user/
