@@ -5,14 +5,8 @@
     </a>
     <% if (user) { %>
       <nav class="flex items-center gap-0.5 text-sm text-slate-600 font-medium">
-        <% if (user.role === 'student') { %>
-          <a href="/" class="px-3 py-1.5 rounded hover:bg-slate-100">My bookings</a>
-          <a href="/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
-          <a href="/complaints" class="px-3 py-1.5 rounded hover:bg-slate-100">Complaints</a>
-        <% } %>
         <% if (user.role === 'technician') { %>
           <a href="/technician" class="px-3 py-1.5 rounded hover:bg-slate-100">Queue</a>
-          <a href="/complaints" class="px-3 py-1.5 rounded hover:bg-slate-100">Complaints</a>
           <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
         <% } %>
         <% if (user.role === 'faculty' || user.role === 'admin') { %>
@@ -22,10 +16,14 @@
           <a href="/admin/users" class="px-3 py-1.5 rounded hover:bg-slate-100">Users</a>
           <a href="/admin/holidays" class="px-3 py-1.5 rounded hover:bg-slate-100">Holidays</a>
           <a href="/faculty" class="px-3 py-1.5 rounded hover:bg-slate-100">Approvals</a>
-          <a href="/complaints" class="px-3 py-1.5 rounded hover:bg-slate-100">Complaints</a>
           <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
           <a href="/admin/settings" class="px-3 py-1.5 rounded hover:bg-slate-100">Settings</a>
         <% } %>
+        <!-- Booking access is available to EVERY role — a PhD incharge is also -->
+        <!-- a researcher who needs to book other equipment for their own work. -->
+        <a href="<%= user.role === 'student' ? '/' : '/my-bookings' %>" class="px-3 py-1.5 rounded hover:bg-slate-100">My bookings</a>
+        <a href="/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100"><%= user.role === 'student' ? 'Instruments' : 'Book equipment' %></a>
+        <a href="/complaints" class="px-3 py-1.5 rounded hover:bg-slate-100">Complaints</a>
         <a href="/contact" class="px-3 py-1.5 rounded hover:bg-slate-100">Contact</a>
         <a href="/kiosk" target="_blank" class="px-3 py-1.5 rounded hover:bg-slate-100 text-slate-500 text-xs">Kiosk ↗</a>
         <span class="ml-2 text-slate-500 hidden md:inline"><%= user.name %></span>
