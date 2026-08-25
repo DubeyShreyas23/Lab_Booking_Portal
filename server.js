@@ -70,6 +70,7 @@ app.use((req, res, next) => {
   res.locals.flashError = req.flash('error');
   res.locals.appName = appConfig.getName();
   res.locals.roleLabel = require('./src/lib/helpers').roleLabel;
+  res.locals.currentPath = req.path;
   res.locals.csrfToken = null; // overridden by exposeCsrf below for GETs that render
   next();
 });

@@ -1,43 +1,154 @@
+<%
+  // Active-link helper: highlights the current page.
+  const isActive = (href) => currentPath === href || (href !== '/' && currentPath.indexOf(href) === 0);
+  const linkCls = (href) => 'px-3 py-1.5 rounded-lg transition ' +
+    (isActive(href) ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900');
+  const dropItem = 'block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50';
+  const chevron = '<svg class="w-3.5 h-3.5 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 7.5L10 12l4.5-4.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
+%>
 <header class="bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm sticky top-0 z-40">
   <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+
     <a href="/" class="flex items-center shrink-0 transition hover:opacity-90">
       <img src="/img/best-lab-logo.png" alt="BITS Environmental Science & Technology (BEST) Lab" class="h-11 w-auto">
     </a>
+
     <% if (user) { %>
-      <nav class="flex items-center gap-0.5 text-sm text-slate-600 font-medium">
+      <!-- ── Desktop nav ─────────────────────────────────────────── -->
+      <nav class="hidden lg:flex items-center gap-1 text-sm">
+
+        <% if (user.role === 'student') { %>
+          <a href="/" class="<%= linkCls('/') %>">My bookings</a>
+          <a href="/instruments" class="<%= linkCls('/instruments') %>">Book equipment</a>
+          <a href="/complaints" class="<%= linkCls('/complaints') %>">Complaints</a>
+        <% } %>
+
         <% if (user.role === 'technician') { %>
-          <a href="/technician" class="px-3 py-1.5 rounded hover:bg-slate-100">Queue</a>
-          <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
+          <a href="/technician" class="<%= linkCls('/technician') %>">Queue</a>
+          <a href="/my-bookings" class="<%= linkCls('/my-bookings') %>">My bookings</a>
+          <a href="/instruments" class="<%= linkCls('/instruments') %>">Book equipment</a>
+          <a href="/complaints" class="<%= linkCls('/complaints') %>">Complaints</a>
+          <a href="/reports" class="<%= linkCls('/reports') %>">Reports</a>
         <% } %>
+
         <% if (user.role === 'faculty' || user.role === 'admin') { %>
-          <a href="/admin" class="px-3 py-1.5 rounded hover:bg-slate-100">Dashboard</a>
-          <a href="/admin/inventory" class="px-3 py-1.5 rounded hover:bg-slate-100">Inventory</a>
-          <a href="/admin/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100">Instruments</a>
-          <a href="/admin/users" class="px-3 py-1.5 rounded hover:bg-slate-100">Users</a>
-          <a href="/admin/holidays" class="px-3 py-1.5 rounded hover:bg-slate-100">Holidays</a>
-          <a href="/faculty" class="px-3 py-1.5 rounded hover:bg-slate-100">Approvals</a>
-          <a href="/reports" class="px-3 py-1.5 rounded hover:bg-slate-100">Reports</a>
-          <a href="/admin/settings" class="px-3 py-1.5 rounded hover:bg-slate-100">Settings</a>
-          <a href="/admin/broadcast" class="px-3 py-1.5 rounded hover:bg-slate-100">Announce</a>
+          <a href="/admin" class="<%= linkCls('/admin') %>">Dashboard</a>
+          <a href="/faculty" class="<%= linkCls('/faculty') %>">Approvals</a>
+          <details class="nav-dd relative">
+            <summary class="list-none cursor-pointer flex items-center gap-1 px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+              Manage <%- chevron %>
+            </summary>
+            <div class="absolute left-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+              <a href="/admin/inventory" class="<%= dropItem %>">Inventory</a>
+              <a href="/admin/instruments" class="<%= dropItem %>">Instruments</a>
+              <a href="/admin/users" class="<%= dropItem %>">Users</a>
+              <a href="/admin/holidays" class="<%= dropItem %>">Holidays</a>
+              <div class="my-1 border-t border-slate-100"></div>
+              <a href="/admin/settings" class="<%= dropItem %>">Settings</a>
+              <a href="/admin/broadcast" class="<%= dropItem %>">Announce</a>
+            </div>
+          </details>
+          <a href="/complaints" class="<%= linkCls('/complaints') %>">Complaints</a>
+          <a href="/reports" class="<%= linkCls('/reports') %>">Reports</a>
         <% } %>
-        <!-- Booking access is available to EVERY role — a PhD incharge is also -->
-        <!-- a researcher who needs to book other equipment for their own work. -->
-        <a href="<%= user.role === 'student' ? '/' : '/my-bookings' %>" class="px-3 py-1.5 rounded hover:bg-slate-100">My bookings</a>
-        <a href="/instruments" class="px-3 py-1.5 rounded hover:bg-slate-100"><%= user.role === 'student' ? 'Instruments' : 'Book equipment' %></a>
-        <a href="/complaints" class="px-3 py-1.5 rounded hover:bg-slate-100">Complaints</a>
-        <a href="/contact" class="px-3 py-1.5 rounded hover:bg-slate-100">Contact</a>
-        <a href="/kiosk" target="_blank" class="px-3 py-1.5 rounded hover:bg-slate-100 text-slate-500 text-xs">Kiosk ↗</a>
-        <span class="ml-2 text-slate-500 hidden md:inline"><%= user.name %></span>
-        <form method="post" action="/logout" class="inline">
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="ml-2 px-3 py-1.5 rounded border hover:bg-slate-50">Sign out</button>
-        </form>
+
+        <!-- User / account menu -->
+        <details class="nav-dd relative ml-1">
+          <summary class="list-none cursor-pointer flex items-center gap-2 pl-2 pr-3 py-1 rounded-full border border-slate-200 hover:bg-slate-50">
+            <span class="grid h-7 w-7 place-items-center rounded-full bg-brand-500 text-white text-xs font-semibold">
+              <%= (user.name || '?').trim().charAt(0).toUpperCase() %>
+            </span>
+            <span class="text-slate-700 max-w-[7rem] truncate"><%= user.name %></span>
+            <%- chevron %>
+          </summary>
+          <div class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+            <div class="px-4 py-2 border-b border-slate-100">
+              <div class="text-sm font-medium text-slate-800 truncate"><%= user.name %></div>
+              <div class="text-xs text-slate-500"><%= roleLabel(user.role) %></div>
+            </div>
+            <% if (user.role === 'faculty' || user.role === 'admin') { %>
+              <a href="/my-bookings" class="<%= dropItem %>">My bookings</a>
+              <a href="/instruments" class="<%= dropItem %>">Book equipment</a>
+              <div class="my-1 border-t border-slate-100"></div>
+            <% } %>
+            <a href="/contact" class="<%= dropItem %>">Contact</a>
+            <a href="/kiosk" target="_blank" class="<%= dropItem %>">Lab display ↗</a>
+            <div class="my-1 border-t border-slate-100"></div>
+            <form method="post" action="/logout">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50">Sign out</button>
+            </form>
+          </div>
+        </details>
       </nav>
+
+      <!-- ── Mobile hamburger ────────────────────────────────────── -->
+      <details class="nav-dd lg:hidden relative">
+        <summary class="list-none cursor-pointer p-2 rounded-lg hover:bg-slate-100 text-slate-700">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/></svg>
+        </summary>
+        <div class="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-50 text-sm">
+          <div class="px-4 py-2 border-b border-slate-100 mb-1">
+            <div class="font-medium text-slate-800 truncate"><%= user.name %></div>
+            <div class="text-xs text-slate-500"><%= roleLabel(user.role) %></div>
+          </div>
+          <% if (user.role === 'student') { %>
+            <a href="/" class="<%= dropItem %>">My bookings</a>
+            <a href="/instruments" class="<%= dropItem %>">Book equipment</a>
+            <a href="/complaints" class="<%= dropItem %>">Complaints</a>
+          <% } %>
+          <% if (user.role === 'technician') { %>
+            <a href="/technician" class="<%= dropItem %>">Queue</a>
+            <a href="/my-bookings" class="<%= dropItem %>">My bookings</a>
+            <a href="/instruments" class="<%= dropItem %>">Book equipment</a>
+            <a href="/complaints" class="<%= dropItem %>">Complaints</a>
+            <a href="/reports" class="<%= dropItem %>">Reports</a>
+          <% } %>
+          <% if (user.role === 'faculty' || user.role === 'admin') { %>
+            <a href="/admin" class="<%= dropItem %>">Dashboard</a>
+            <a href="/faculty" class="<%= dropItem %>">Approvals</a>
+            <a href="/admin/inventory" class="<%= dropItem %>">Inventory</a>
+            <a href="/admin/instruments" class="<%= dropItem %>">Instruments</a>
+            <a href="/admin/users" class="<%= dropItem %>">Users</a>
+            <a href="/admin/holidays" class="<%= dropItem %>">Holidays</a>
+            <a href="/admin/settings" class="<%= dropItem %>">Settings</a>
+            <a href="/admin/broadcast" class="<%= dropItem %>">Announce</a>
+            <a href="/complaints" class="<%= dropItem %>">Complaints</a>
+            <a href="/reports" class="<%= dropItem %>">Reports</a>
+            <div class="my-1 border-t border-slate-100"></div>
+            <a href="/my-bookings" class="<%= dropItem %>">My bookings</a>
+            <a href="/instruments" class="<%= dropItem %>">Book equipment</a>
+          <% } %>
+          <div class="my-1 border-t border-slate-100"></div>
+          <a href="/contact" class="<%= dropItem %>">Contact</a>
+          <a href="/kiosk" target="_blank" class="<%= dropItem %>">Lab display ↗</a>
+          <form method="post" action="/logout">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50">Sign out</button>
+          </form>
+        </div>
+      </details>
+
     <% } else { %>
       <nav class="flex items-center gap-3 text-sm">
         <a href="/contact" class="text-slate-600 hover:text-brand-600 hover:underline">Contact</a>
-        <a href="/login" class="text-brand-600 hover:underline">Sign in</a>
+        <a href="/login" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-1.5 rounded-lg font-medium">Sign in</a>
       </nav>
     <% } %>
   </div>
 </header>
+
+<script>
+  // Close any open nav dropdown when another opens or when clicking outside.
+  (function () {
+    const dds = Array.from(document.querySelectorAll('details.nav-dd'));
+    dds.forEach((d) => {
+      d.addEventListener('toggle', () => {
+        if (d.open) dds.forEach((o) => { if (o !== d) o.open = false; });
+      });
+    });
+    document.addEventListener('click', (e) => {
+      dds.forEach((d) => { if (d.open && !d.contains(e.target)) d.open = false; });
+    });
+  })();
+</script>
