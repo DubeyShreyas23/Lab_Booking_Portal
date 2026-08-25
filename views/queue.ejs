@@ -15,37 +15,42 @@
   <% } else { %>
     <ul class="divide-y">
       <% pending.forEach(function(b){ %>
-        <li class="px-4 py-3 sm:flex sm:items-center sm:gap-4">
-          <div class="flex-1 min-w-0">
-            <div class="font-medium text-slate-900">
-              <a href="/bookings/<%= b.id %>" class="hover:underline"><%= b.instrument_name %></a>
-              · <%= b.dateLong %> · <%= b.startTime %>–<%= b.endTime %>
+        <li class="px-4 py-3">
+          <div class="sm:flex sm:items-start sm:gap-4">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-slate-900">
+                <a href="/bookings/<%= b.id %>" class="hover:underline"><%= b.instrument_name %></a>
+                · <%= b.slotLabel %>
+              </div>
+              <div class="text-sm text-slate-600 mt-0.5">
+                Requested by <strong><%= b.student_name %></strong>
+                <span class="text-slate-400">&lt;<%= b.student_email %>&gt;</span>
+                <% if (stage === 'technician' && b.faculty_name) { %>
+                  · Supervisor: <%= b.faculty_name %>
+                <% } %>
+                · <%= b.durationLabel %>
+                <% if (b.purpose) { %>· "<%= b.purpose %>"<% } %>
+                · <a href="/bookings/<%= b.id %>" class="text-brand-600 hover:underline">details →</a>
+              </div>
             </div>
-            <div class="text-sm text-slate-600 mt-0.5">
-              Requested by <strong><%= b.student_name %></strong>
-              <span class="text-slate-400">&lt;<%= b.student_email %>&gt;</span>
-              <% if (stage === 'technician' && b.faculty_name) { %>
-                · Supervisor: <%= b.faculty_name %>
-              <% } %>
-              · <%= b.durationLabel %>
-              <% if (b.purpose) { %>· "<%= b.purpose %>"<% } %>
-              · <a href="/bookings/<%= b.id %>" class="text-brand-600 hover:underline">details →</a>
-            </div>
-          </div>
-          <div class="mt-2 sm:mt-0 flex items-center gap-2">
-            <form method="post" action="/<%= stage %>/<%= b.id %>/approve" class="inline">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded">Approve</button>
-            </form>
-            <details class="relative">
-              <summary class="list-none bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm px-3 py-1.5 rounded cursor-pointer">Reject…</summary>
-              <form method="post" action="/<%= stage %>/<%= b.id %>/reject" class="absolute right-0 mt-2 bg-white border rounded shadow-lg p-3 w-72 z-10 space-y-2">
+            <div class="mt-2 sm:mt-0 flex items-center gap-2 shrink-0">
+              <form method="post" action="/<%= stage %>/<%= b.id %>/approve" class="inline">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <textarea name="reason" rows="3" required placeholder="Reason for rejection" class="w-full px-2 py-1.5 border rounded text-sm"></textarea>
-                <button class="w-full bg-rose-600 hover:bg-rose-700 text-white text-sm py-1.5 rounded">Confirm rejection</button>
+                <button class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded">Approve</button>
               </form>
-            </details>
+              <button type="button" onclick="document.getElementById('reject-<%= b.id %>').classList.toggle('hidden')"
+                      class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm px-3 py-1.5 rounded">Reject…</button>
+            </div>
           </div>
+          <!-- In-flow (not absolute) so it can't be clipped by the section's overflow -->
+          <form id="reject-<%= b.id %>" method="post" action="/<%= stage %>/<%= b.id %>/reject"
+                class="hidden mt-3 bg-rose-50/50 border border-rose-200 rounded p-3 space-y-2 max-w-md">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <label class="block text-xs font-medium text-rose-800">Reason for rejection (required)</label>
+            <textarea name="reason" rows="2" required placeholder="e.g. Instrument under maintenance that day"
+                      class="w-full px-2 py-1.5 border rounded text-sm"></textarea>
+            <button class="bg-rose-600 hover:bg-rose-700 text-white text-sm px-4 py-1.5 rounded">Confirm rejection</button>
+          </form>
         </li>
       <% }) %>
     </ul>
@@ -69,7 +74,7 @@
               completed:'bg-sky-100 text-sky-800',
             })[b.status] %>
           <span class="<%= color %> px-2 py-0.5 rounded text-xs font-medium w-32 text-center"><%= b.status.replace('_',' ') %></span>
-          <span class="flex-1"><%= b.instrument_name %> · <%= b.dateLong %> · <%= b.startTime %>–<%= b.endTime %></span>
+          <span class="flex-1"><%= b.instrument_name %> · <%= b.slotLabel %></span>
           <span class="text-slate-500"><%= b.student_name %></span>
         </li>
       <% }) %>

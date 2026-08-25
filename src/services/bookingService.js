@@ -223,7 +223,11 @@ async function createDailyBooking({ student, instrumentId, payload }) {
   if (!dateStr || !start.isValid()) throw new ValidationError('Please pick a valid start date.');
 
   const startsAt = start.toISOString();
-  const endsAt = start.add(durationDays, 'day').toISOString();
+  // A daily booking occupies `durationDays` CALENDAR days, inclusive: from open
+  // time on the start day to close time on the last day. e.g. a 6-day run from
+  // 26 Aug = 26 Aug 09:00 -> 31 Aug 21:00 (not 01 Sep).
+  const endsAt = dayjs(`${dateStr}T${pad(instrument.close_hour)}:00:00`)
+    .add(durationDays - 1, 'day').toISOString();
 
   if (start.isBefore(dayjs().startOf('day'))) {
     throw new ValidationError('Cannot book a start date in the past.');

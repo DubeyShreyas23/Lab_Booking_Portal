@@ -17,7 +17,7 @@
       <div>
         <div class="text-xs text-slate-500 uppercase tracking-wide">Booking #<%= booking.id %></div>
         <h1 class="text-2xl font-semibold text-slate-900 mt-1"><%= booking.instrument_name %></h1>
-        <p class="text-sm text-slate-600 mt-1"><%= booking.dateLong %> · <%= booking.startTime %> – <%= booking.endTime %> · <%= booking.durationLabel %></p>
+        <p class="text-sm text-slate-600 mt-1"><%= booking.slotLabel %> · <%= booking.durationLabel %></p>
       </div>
       <span class="<%= statusColor %> px-3 py-1 rounded-full text-sm font-medium"><%= booking.status.replace('_',' ') %></span>
     </div>

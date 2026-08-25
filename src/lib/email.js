@@ -100,7 +100,7 @@ const SIG = () =>
 const PORTAL = () => `\nPortal Link: ${process.env.PORTAL_URL || 'http://localhost:' + (process.env.PORTAL_PORT || process.env.PORT || 3000)}\n`;
 
 const fmt = (b) =>
-  `${b.instrument_name} and Time Slot: ${b.dateLong} - ${b.startTime} to ${b.endTime} (Duration: ${b.durationLabel})`;
+  `${b.instrument_name} and Time Slot: ${b.slotLabel} (Duration: ${b.durationLabel})`;
 
 module.exports = {
   sendMail,

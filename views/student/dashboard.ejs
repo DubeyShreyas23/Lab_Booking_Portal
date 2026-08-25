@@ -18,8 +18,7 @@
       <thead class="bg-slate-50 text-slate-600 text-left">
         <tr>
           <th class="px-3 py-2">Instrument</th>
-          <th class="px-3 py-2">Date</th>
-          <th class="px-3 py-2">Time</th>
+          <th class="px-3 py-2">When</th>
           <th class="px-3 py-2">Duration</th>
           <th class="px-3 py-2">Status</th>
           <th class="px-3 py-2"></th>
@@ -29,8 +28,7 @@
         <% bookings.forEach(function(b){ %>
         <tr>
           <td class="px-3 py-2 font-medium"><a href="/bookings/<%= b.id %>" class="hover:underline"><%= b.instrument_name %></a> <span class="text-xs text-slate-400">(<%= b.instrument_code %>)</span></td>
-          <td class="px-3 py-2"><%= b.dateLong %></td>
-          <td class="px-3 py-2"><%= b.startTime %> – <%= b.endTime %></td>
+          <td class="px-3 py-2"><%= b.slotLabel %></td>
           <td class="px-3 py-2"><%= b.durationLabel %></td>
           <td class="px-3 py-2">
             <% var color = ({

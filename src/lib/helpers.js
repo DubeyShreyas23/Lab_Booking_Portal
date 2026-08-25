@@ -40,7 +40,32 @@ function formatTime(iso) {
   return dayjs(iso).format('HH:mm:ss');
 }
 
-function durationLabel(startIso, endIso) {
+// "26 August 2026 (09:00 AM)"
+function formatDateTimePretty(iso) {
+  return dayjs(iso).format('DD MMMM YYYY (hh:mm A)');
+}
+
+// Human-readable slot. Multi-day bookings (or any span crossing midnight) show
+// both dates; same-day bookings show the date once with a time range.
+//   daily:      "26 August 2026 (09:00 AM) - 31 August 2026 (09:00 PM)"
+//   same day:   "26 August 2026, 09:00 AM - 01:00 PM"
+function slotLabel(startIso, endIso, mode) {
+  const s = dayjs(startIso);
+  const e = dayjs(endIso);
+  if (mode === 'daily' || !s.isSame(e, 'day')) {
+    return `${formatDateTimePretty(startIso)} - ${formatDateTimePretty(endIso)}`;
+  }
+  return `${s.format('DD MMMM YYYY')}, ${s.format('hh:mm A')} - ${e.format('hh:mm A')}`;
+}
+
+function durationLabel(startIso, endIso, mode) {
+  // Daily bookings are counted in whole calendar days, inclusive of the last
+  // day (e.g. 26th 9AM -> 31st 9PM = 6 days), so we count day boundaries
+  // rather than the raw hour difference.
+  if (mode === 'daily') {
+    const days = dayjs(endIso).startOf('day').diff(dayjs(startIso).startOf('day'), 'day') + 1;
+    return `${days} day${days > 1 ? 's' : ''}`;
+  }
   const mins = dayjs(endIso).diff(dayjs(startIso), 'minute');
   if (mins >= 1440 && mins % 1440 === 0) {
     const d = mins / 1440;
@@ -53,12 +78,16 @@ function durationLabel(startIso, endIso) {
 }
 
 function decorateBooking(b) {
+  const mode = b.booking_mode;
   return {
     ...b,
     dateLong: formatDateLong(b.starts_at),
     startTime: formatTime(b.starts_at),
     endTime: formatTime(b.ends_at),
-    durationLabel: durationLabel(b.starts_at, b.ends_at),
+    startPretty: formatDateTimePretty(b.starts_at),
+    endPretty: formatDateTimePretty(b.ends_at),
+    slotLabel: slotLabel(b.starts_at, b.ends_at, mode),
+    durationLabel: durationLabel(b.starts_at, b.ends_at, mode),
   };
 }
 
@@ -69,6 +98,8 @@ module.exports = {
   roleLabel,
   formatDateLong,
   formatTime,
+  formatDateTimePretty,
+  slotLabel,
   durationLabel,
   decorateBooking,
   dayjs,
