@@ -72,7 +72,7 @@ router.post('/inventory/:id/status', async (req, res, next) => {
     const status = ['working', 'repair', 'retired'].includes(req.body.status) ? req.body.status : 'working';
     await instrumentRepo.setStatus(Number(req.params.id), status);
     req.flash('info', 'Status updated.');
-    res.redirect('back');
+    res.redirect(req.get('Referer') || '/admin/inventory');
   } catch (e) { next(e); }
 });
 

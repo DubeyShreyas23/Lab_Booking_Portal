@@ -17,7 +17,7 @@ function handle(err, req, res, _next) {
     if (err.code === 'VALIDATION' && req.method === 'POST') {
       // flash and bounce back
       req.flash && req.flash('error', err.message);
-      return res.redirect('back');
+      return res.redirect(req.get('Referer') || '/');
     }
     return res.status(err.status).render('error', { title: err.code, message: err.message });
   }

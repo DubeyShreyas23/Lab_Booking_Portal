@@ -333,9 +333,9 @@ async function cancelByStudent({ student, bookingId }) {
     throw new ConflictError('Booking cannot be cancelled in its current state.');
   }
   const fromStatus = b.status;
-  bookingRepo.setStatus(b.id, 'cancelled');
-  bookingRepo.log({ bookingId: b.id, actorId: student.id, action: 'cancelled' });
-  bookingRepo.logEvent({ bookingId: b.id, actorId: student.id, eventType: 'cancelled', fromStatus, toStatus: 'cancelled' });
+  await bookingRepo.setStatus(b.id, 'cancelled');
+  await bookingRepo.log({ bookingId: b.id, actorId: student.id, action: 'cancelled' });
+  await bookingRepo.logEvent({ bookingId: b.id, actorId: student.id, eventType: 'cancelled', fromStatus, toStatus: 'cancelled' });
 }
 
 module.exports = {
