@@ -2,6 +2,7 @@ const express = require('express');
 const reportRepo = require('../repos/reportRepo');
 const pdf = require('../services/pdfService');
 const instrumentRepo = require('../repos/instrumentRepo');
+const { decorateBooking } = require('../lib/helpers');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -17,7 +18,10 @@ router.get('/', async (req, res, next) => {
     res.render('reports/index', {
       title: 'Usage reports',
       filters,
-      rows,
+      // Decorate so the view shows IST-formatted dates/times (raw values are
+      // stored in UTC). summarize() still reads the raw starts_at/ends_at that
+      // decorateBooking preserves via spread.
+      rows: rows.map(decorateBooking),
       summary: reportRepo.summarize(rows),
       instruments,
     });
