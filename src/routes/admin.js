@@ -11,6 +11,7 @@ const instrumentService = require('../services/instrumentService');
 const userService = require('../services/userService');
 const { parseOrThrow } = require('../validators/parse');
 const { upsertInstrument, createUser, updateUser } = require('../validators/schemas');
+const { decorateBooking } = require('../lib/helpers');
 const { requireAuth, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -28,7 +29,7 @@ router.get('/', async (req, res, next) => {
     res.render('admin/dashboard', {
       title: 'Admin',
       stats: { instruments, users, pending, approvedFuture },
-      recent,
+      recent: recent.map(decorateBooking), // IST-formatted times (stored UTC)
     });
   } catch (e) { next(e); }
 });
