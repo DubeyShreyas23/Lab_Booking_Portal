@@ -13,6 +13,7 @@ function buildPayload(input) {
     close_hour: input.close_hour,
     technician_id: input.technician_id ? Number(input.technician_id) : null,
     active: input.active ? 1 : 0,
+    multi_user: input.multi_user ? 1 : 0,
   };
 }
 

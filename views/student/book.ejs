@@ -33,10 +33,20 @@
       <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
         <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-white border"></span>Free</span>
         <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-emerald-500"></span>Your pick</span>
-        <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-rose-200"></span>Booked</span>
+        <% if (instrument.multi_user === 1 || instrument.multi_user === true) { %>
+          <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-white border text-sky-600 text-[9px] font-bold text-center leading-3">2</span>Shared (others booked)</span>
+        <% } else { %>
+          <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-rose-200"></span>Booked</span>
+        <% } %>
         <span class="inline-flex items-center gap-1"><span class="inline-block w-3 h-3 rounded bg-slate-100 border"></span>Unavailable</span>
       </div>
     </div>
+
+    <% if (instrument.multi_user === 1 || instrument.multi_user === true) { %>
+      <div class="mb-3 px-4 py-2.5 rounded bg-sky-50 text-sky-800 border border-sky-200 text-sm">
+        <strong>Shared equipment.</strong> Multiple users can book the same time slot — a slot others have booked is still available to you. The number on a cell shows how many people have already booked it.
+      </div>
+    <% } %>
 
     <% if (closedAllDay) { %>
       <div class="mb-3 px-4 py-2.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-sm">
@@ -51,10 +61,11 @@
     <div id="slotGrid" class="grid gap-1" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
       <% cells.forEach(function(c, i){ %>
         <%
+          var multiUser = instrument.multi_user === 1 || instrument.multi_user === true;
           var base, note = '';
-          if (c.taken)          { base = 'bg-rose-200 text-rose-800 cursor-not-allowed'; note = ' · Booked by ' + c.bookedBy; }
+          if (!multiUser && c.taken) { base = 'bg-rose-200 text-rose-800 cursor-not-allowed'; note = ' · Booked by ' + c.bookedBy; }
           else if (c.past)      { base = 'bg-slate-100 text-slate-400 cursor-not-allowed'; note = ' · Past'; }
-          else if (c.selectable){ base = 'bg-white hover:bg-slate-100 cursor-pointer'; }
+          else if (c.selectable){ base = 'bg-white hover:bg-slate-100 cursor-pointer'; if (multiUser && c.count) { note = ' · ' + c.count + ' already booked (shared — still available)'; } }
           else                  { base = 'bg-slate-100 text-slate-400 cursor-not-allowed'; note = ' · Unavailable'; }
         %>
         <div
@@ -65,7 +76,9 @@
           class="cal-cell border rounded px-1 py-2 text-center text-xs select-none transition-colors <%= base %>"
           title="<%= c.time %>–<%= c.endTime %><%= note %>">
           <div class="font-medium"><%= c.time %></div>
-          <% if (c.taken) { %>
+          <% if (multiUser && c.count) { %>
+            <div class="text-[10px] mt-0.5 font-bold text-sky-600" title="<%= c.count %> already booked"><%= c.count %></div>
+          <% } else if (c.taken) { %>
             <div class="text-[10px] mt-0.5 font-bold tracking-wider"><%= c.initials %></div>
           <% } %>
         </div>

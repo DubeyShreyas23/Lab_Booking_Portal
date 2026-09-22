@@ -24,10 +24,10 @@ module.exports = {
   async create(p) {
     const row = await db.get(
       `INSERT INTO instruments
-        (code, name, description, location, experiment_minutes, maintenance_minutes, open_hour, close_hour, technician_id, active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+        (code, name, description, location, experiment_minutes, maintenance_minutes, open_hour, close_hour, technician_id, active, multi_user)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`,
       [p.code, p.name, p.description, p.location, p.experiment_minutes, p.maintenance_minutes,
-       p.open_hour, p.close_hour, p.technician_id, p.active],
+       p.open_hour, p.close_hour, p.technician_id, p.active, p.multi_user ? 1 : 0],
     );
     return this.findById(row.id);
   },
@@ -36,11 +36,11 @@ module.exports = {
       `UPDATE instruments SET
          code=$1, name=$2, description=$3, location=$4,
          experiment_minutes=$5, maintenance_minutes=$6,
-         open_hour=$7, close_hour=$8, technician_id=$9, active=$10,
+         open_hour=$7, close_hour=$8, technician_id=$9, active=$10, multi_user=$11,
          updated_at=${db.ISO_NOW}
-       WHERE id=$11`,
+       WHERE id=$12`,
       [p.code, p.name, p.description, p.location, p.experiment_minutes, p.maintenance_minutes,
-       p.open_hour, p.close_hour, p.technician_id, p.active, id],
+       p.open_hour, p.close_hour, p.technician_id, p.active, p.multi_user ? 1 : 0, id],
     );
     return this.findById(id);
   },

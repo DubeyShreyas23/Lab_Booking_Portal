@@ -29,17 +29,23 @@ async function buildDayGrid({ instrument, dateISO, now = dayjs() }) {
   const existing = await bookingRepo.sameDay({ instrumentId: instrument.id, dateISO });
   const closedAllDay = await holidayRepo.isClosedOn({ dateISO, instrumentId: instrument.id });
 
+  // "Multiple User" (shared) equipment — e.g. fridges, cold rooms, ovens —
+  // may be used by several people at once, so an existing booking does NOT
+  // block the slot for others.
+  const multiUser = instrument.multi_user === 1 || instrument.multi_user === true;
+
   // First pass: build raw cells with taken/past flags.
   const cells = [];
   for (let t = dayStart.clone(); t.isBefore(dayEnd); t = t.add(step, 'minute')) {
     const cellStart = t;
     const cellEnd   = t.add(step, 'minute');
 
-    const booking = existing.find((b) => {
+    const overlaps = existing.filter((b) => {
       const bStart = dayjs(b.starts_at);
       const bEnd   = dayjs(b.ends_at);
       return cellStart.isBefore(bEnd) && cellEnd.isAfter(bStart);
     });
+    const booking = overlaps[0];
 
     const past = cellStart.isBefore(now);
 
@@ -48,8 +54,10 @@ async function buildDayGrid({ instrument, dateISO, now = dayjs() }) {
       time:       cellStart.format('HH:mm'),
       endTime:    cellEnd.format('HH:mm'),
       taken:      !!booking,
+      count:      overlaps.length,                     // how many share this slot (multi-user)
       past,
-      blocked:    !!booking || past || closedAllDay,   // can't be part of any new booking
+      // Shared equipment is never blocked by others' bookings — only by past time / closure.
+      blocked:    past || closedAllDay || (!multiUser && !!booking),
       selectable: false,                               // computed in 2nd pass
       bookingId:  booking ? booking.id : null,
       bookedBy:   booking ? booking.student_name || '' : null,
@@ -72,7 +80,7 @@ async function buildDayGrid({ instrument, dateISO, now = dayjs() }) {
   }
 
   const anySelectable = cells.some((c) => c.selectable);
-  return { cells, cellsNeeded, totalMinutes: total, stepMinutes: step, closedAllDay, anySelectable };
+  return { cells, cellsNeeded, totalMinutes: total, stepMinutes: step, closedAllDay, anySelectable, multiUser };
 }
 
 // Back-compat shim (older view); returns flat list of valid start times
@@ -155,16 +163,20 @@ async function createBooking({ student, instrumentId, payload }) {
       throw new ConflictError('You already have a booking that overlaps this slot for this instrument.');
     }
 
-    const clash = (await client.query(
-      `SELECT 1 FROM bookings
-       WHERE instrument_id = $1
-         AND status IN ('pending_technician','pending_faculty','approved')
-         AND NOT (ends_at <= $2 OR starts_at >= $3)
-       LIMIT 1`,
-      [instrument.id, startsAt, endsAt],
-    )).rows[0];
-    if (clash) {
-      throw new ConflictError('That slot is no longer free — someone else just booked it. Please pick another.');
+    // Shared ("Multiple User") equipment allows concurrent bookings, so we only
+    // reject an overlap with SOMEONE ELSE on exclusive instruments.
+    if (instrument.multi_user !== 1 && instrument.multi_user !== true) {
+      const clash = (await client.query(
+        `SELECT 1 FROM bookings
+         WHERE instrument_id = $1
+           AND status IN ('pending_technician','pending_faculty','approved')
+           AND NOT (ends_at <= $2 OR starts_at >= $3)
+         LIMIT 1`,
+        [instrument.id, startsAt, endsAt],
+      )).rows[0];
+      if (clash) {
+        throw new ConflictError('That slot is no longer free — someone else just booked it. Please pick another.');
+      }
     }
 
     const inserted = (await client.query(
@@ -247,12 +259,15 @@ async function createDailyBooking({ student, instrumentId, payload }) {
       [student.id, instrument.id, startsAt, endsAt])).rows[0];
     if (mine) throw new ConflictError('You already have a booking overlapping these dates for this instrument.');
 
-    const clash = (await client.query(
-      `SELECT 1 FROM bookings WHERE instrument_id=$1
-        AND status IN ('pending_technician','pending_faculty','approved')
-        AND NOT (ends_at <= $2 OR starts_at >= $3) LIMIT 1`,
-      [instrument.id, startsAt, endsAt])).rows[0];
-    if (clash) throw new ConflictError('Those dates overlap an existing booking. Please pick another start date.');
+    // Shared ("Multiple User") equipment allows concurrent bookings.
+    if (instrument.multi_user !== 1 && instrument.multi_user !== true) {
+      const clash = (await client.query(
+        `SELECT 1 FROM bookings WHERE instrument_id=$1
+          AND status IN ('pending_technician','pending_faculty','approved')
+          AND NOT (ends_at <= $2 OR starts_at >= $3) LIMIT 1`,
+        [instrument.id, startsAt, endsAt])).rows[0];
+      if (clash) throw new ConflictError('Those dates overlap an existing booking. Please pick another start date.');
+    }
 
     const inserted = (await client.query(
       `INSERT INTO bookings (student_id, instrument_id, supervisor_id, starts_at, ends_at, purpose, sample_count, booking_mode, status)

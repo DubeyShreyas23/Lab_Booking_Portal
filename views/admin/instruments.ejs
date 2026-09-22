@@ -19,7 +19,9 @@
         <% items.forEach(function(i){ %>
           <tr class="<%= i.active ? '' : 'opacity-60' %>">
             <td class="px-3 py-2 font-mono text-xs"><%= i.code %></td>
-            <td class="px-3 py-2 font-medium"><%= i.name %></td>
+            <td class="px-3 py-2 font-medium"><%= i.name %>
+              <% if (i.multi_user) { %><span class="ml-1 align-middle inline-block text-[10px] font-semibold text-sky-700 bg-sky-100 rounded px-1.5 py-0.5">Shared</span><% } %>
+            </td>
             <td class="px-3 py-2 text-xs">
               <%= i.experiment_minutes %>m exp + <%= i.maintenance_minutes %>m maint
               = <span class="font-medium"><%= ((i.experiment_minutes + i.maintenance_minutes)/60).toFixed(1) %> hr</span>
@@ -95,6 +97,11 @@
       <label class="inline-flex items-center gap-2">
         <input type="checkbox" name="active" value="1" <%= !edit || edit.active ? 'checked' : '' %>>
         <span>Active</span>
+      </label>
+      <label class="flex items-start gap-2 rounded border border-sky-200 bg-sky-50 px-3 py-2">
+        <input type="checkbox" name="multi_user" value="1" class="mt-0.5" <%= edit && edit.multi_user ? 'checked' : '' %>>
+        <span class="text-sm"><span class="font-medium text-sky-800">Multiple User (shared)</span><br>
+          <span class="text-xs text-slate-500">Several people can book the same time slot — bookings don't block each other (e.g. fridge, cold room, oven, incubator).</span></span>
       </label>
       <div class="flex gap-2 pt-1">
         <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded text-sm flex-1"><%= edit ? 'Save changes' : 'Add instrument' %></button>

@@ -224,6 +224,7 @@ async function init() {
   await addCol('instruments', 'status', "TEXT NOT NULL DEFAULT 'working'"); // working / repair / retired
   await addCol('instruments', 'booking_mode', "TEXT NOT NULL DEFAULT 'hourly'"); // hourly / daily
   await addCol('instruments', 'duration_days', 'INTEGER');             // for daily-mode equipment
+  await addCol('instruments', 'multi_user', 'INTEGER NOT NULL DEFAULT 0'); // shared equipment: allow concurrent bookings in the same slot
   await addCol('bookings', 'sample_count', 'INTEGER DEFAULT 1');
   await addCol('bookings', 'closure_requested_at', 'TEXT');
   await addCol('bookings', 'booking_mode', "TEXT NOT NULL DEFAULT 'hourly'");

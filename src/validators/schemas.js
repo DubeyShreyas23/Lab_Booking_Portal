@@ -37,6 +37,7 @@ const upsertInstrument = z.object({
   close_hour: z.coerce.number().int().min(1).max(24),
   technician_id: z.coerce.number().int().positive().optional().nullable(),
   active: z.union([z.literal('1'), z.literal('on'), z.literal('true'), z.boolean()]).optional(),
+  multi_user: z.union([z.literal('1'), z.literal('on'), z.literal('true'), z.boolean()]).optional(),
 }).refine((v) => v.close_hour > v.open_hour, { message: 'Close hour must be after open hour', path: ['close_hour'] });
 
 const createUser = z.object({
